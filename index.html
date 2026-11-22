@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gochi Cycle · AI for less food waste</title>
+  <meta name="description" content="Gochi Cycle: AI demand forecasting and leftover rescue for convenience stores. HiroshimAI Foodtech Hackathon 2026 demo.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M5 13a11 11 0 0 1 22 0' fill='none' stroke='%239CCBC4' stroke-width='4'/%3E%3Cpath d='M27 19a11 11 0 0 1-22 0' fill='none' stroke='%23E07A5F' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 13a11 11 0 0 1 22 0" fill="none" stroke="#9CCBC4" stroke-width="4"/><path d="M27 19a11 11 0 0 1-22 0" fill="none" stroke="#E07A5F" stroke-width="4"/></svg>
+      <div><div class="name">GOCHI CYCLE</div><div class="tag" data-i18n="tagline"></div></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button data-tab="store" data-i18n="tabStore"></button>
+      <button data-tab="customer" data-i18n="tabCustomer"></button>
+      <button data-tab="impact" data-i18n="tabImpact"></button>
+      <button data-tab="ai" data-i18n="tabAI"></button>
+    </nav>
+    <button id="lang" class="lang" aria-label="Switch language">日本語</button>
+  </header>
+
+  <main>
+    <!-- STORE -->
+    <section id="store" class="screen">
+      <div class="intro"><h1 data-i18n="storeTitle"></h1><p data-i18n="storeLead"></p></div>
+      <div class="controls card">
+        <h2 data-i18n="tomorrow"></h2>
+        <label><span data-i18n="day"></span><select id="wd"></select></label>
+        <div class="seg" id="weather"></div>
+        <label class="grow"><span data-i18n="temp"></span> <b id="tempOut"></b>
+          <input id="temp" type="range" min="0" max="35" step="1" value="16"></label>
+        <label class="check"><input id="event" type="checkbox"> <span data-i18n="event"></span></label>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2 data-i18n="preTitle"></h2>
+          <p class="muted" data-i18n="preLead"></p>
+          <div class="preform">
+            <select id="preItem"></select>
+            <input id="preQty" type="number" min="1" max="50" value="8">
+            <button id="preAdd" class="btn primary" data-i18n="preAdd"></button>
+          </div>
+          <ul id="preList" class="prelist"></ul>
+        </div>
+        <div class="kpis" id="storeKpis"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="planTitle"></h2>
+        <div class="tablewrap"><table id="planTable"></table></div>
+        <div class="actions">
+          <button id="publish" class="btn accent" data-i18n="publish"></button>
+          <span id="published" class="muted"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOMER -->
+    <section id="customer" class="screen">
+      <div class="intro"><h1 data-i18n="custTitle"></h1><p data-i18n="custLead"></p></div>
+      <div class="phone">
+        <div class="phonebar"><span>Gochi Cycle</span><span>📍 Hiroshima</span></div>
+        <div id="alert" class="alertbox"></div>
+        <div id="deals"></div>
+      </div>
+    </section>
+
+    <!-- IMPACT -->
+    <section id="impact" class="screen">
+      <div class="intro"><h1 data-i18n="impTitle"></h1><p data-i18n="impLead"></p></div>
+      <div class="kpis wide" id="impKpis"></div>
+      <div class="card">
+        <h2 data-i18n="howCalc"></h2>
+        <ul id="method" class="method"></ul>
+        <button id="reset" class="btn" data-i18n="reset"></button>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section id="ai" class="screen">
+      <div class="intro"><h1 data-i18n="aiTitle"></h1><p data-i18n="aiLead"></p></div>
+      <div class="card"><h2 data-i18n="accTitle"></h2><div class="tablewrap"><table id="accTable"></table></div></div>
+      <div class="grid2">
+        <div class="card"><h2 data-i18n="chartTitle"></h2><select id="chartItem"></select><div id="chart"></div></div>
+        <div class="card"><h2 data-i18n="wTitle"></h2><p class="muted" data-i18n="wLead"></p><div id="weights"></div></div>
+      </div>
+      <p class="muted small" data-i18n="disclaimer"></p>
+    </section>
+  </main>
+
+  <footer><span data-i18n="footer"></span></footer>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
