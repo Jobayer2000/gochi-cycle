@@ -1,24 +1,26 @@
 import { ITEMS, WEATHER, FEATURE_NAMES, FACTORS, makeHistory, trainAll, plan, impact } from "./model.js";
+import { mountCustomer, preordersFor, rescuedLines, publishDeals, resetCustomer, rerenderCustomer } from "./customer.js";
+import { STORES, storeName } from "./stores.js";
 
 // ---------- text (English / Japanese) ----------
 const T = {
   en: {
     tagline: "Waste nothing, cycle everything.", tabStore: "Store", tabCustomer: "Customer", tabImpact: "Impact", tabAI: "How the AI works",
     storeTitle: "Make the right amount", storeLead: "The AI forecasts tomorrow's sales for each item from the day, weather, temperature, local events and pre-orders, then suggests how much to make and when to discount what may be left.",
-    tomorrow: "Tomorrow", day: "Day", temp: "Temperature", event: "Local event nearby",
+    tomorrow: "Tomorrow", storeSel: "Store", day: "Day", temp: "Temperature", event: "Local event nearby",
     preTitle: "Group pre-orders", preLead: "Customers and groups order before the store cooks. Pre-orders are certain sales; the AI predicts walk-in demand on top. Try adding 8 bento.", preAdd: "Add pre-order",
-    planTitle: "AI production plan", publish: "List expected leftovers for nearby customers",
+    planTitle: "AI production plan", publish: "List expected leftovers in the customer app",
     colItem: "Item", colPre: "Pre-orders", colFc: "AI forecast", colHabit: "Usual plan", colAI: "AI plan", colLeft: "Expected leftovers (usual → AI)", colMd: "Suggested discount",
     kLeft: "Leftovers avoided tomorrow", kLeftSub: "items, compared with the usual plan", kKg: "Food kept out of the bin", kCo2: "CO₂e avoided", kMoney: "Ingredient cost saved",
     publishedMsg: n => `${n} items listed on the customer app ✓`,
-    custTitle: "Good food, nearby, for less", custLead: "Customers who opt in get an alert when still-good food near them is discounted. They reserve, pay and pick up before the food's time is up.",
+    custTitle: "Three chains, one app", custLead: "Customers log in, pre-order from Seven-Eleven, FamilyMart and Lawson nearby, and rescue still-good food at night. Pre-orders flow straight into each store's AI forecast.",
     alert: n => `🔔 ${n} discounted items near you tonight. Pick up before 00:30.`, noDeals: "No deals yet. In the Store tab, press “List expected leftovers”.",
     reserve: "Reserve", left: "left", pickup: "Pick up 21:00–00:30", code: c => `Reserved ✓ Show code ${c} at the counter`,
     impTitle: "Our impact, live", impLead: "Every reservation and every avoided leftover is counted here: food, money and CO₂e.",
     iFood: "Food kept out of the bin", iCust: "Customers saved", iStore: "Store income from leftovers", iCo2: "CO₂e avoided",
     howCalc: "How we calculate", reset: "Reset demo",
     m1: "Prevented food = leftovers avoided by the AI plan (usual plan − AI plan), counted when the store follows the AI plan.",
-    m2: "Rescued food = items reserved by customers. Weight per item: bento 450 g, rice ball 110 g, sandwich 180 g, salad 200 g.",
+    m2: "Rescued food = discounted leftovers ordered in the customer app. Weight per item: bento 450 g, rice ball 110 g, sandwich 180 g, salad 200 g.",
     m3: `CO₂e: prevented food × ${FACTORS.co2PerKg} kg CO₂e/kg (food not produced). Rescued food × (${FACTORS.co2PerKg} × 50% displacement − ${FACTORS.opsPerKg} kg for our operations).`,
     m4: "Emission factor 3.19 kg CO₂e per kg food: Blonk & Mérieux NutriSciences (2024), EU food-mix average. A screening estimate, not a full life-cycle assessment.",
     m5: "Money: customers save the discount; the store earns the discounted price on food that would have earned nothing.",
@@ -34,20 +36,20 @@ const T = {
   jp: {
     tagline: "ムダにしない。すべてを循環させる。", tabStore: "店舗", tabCustomer: "利用者", tabImpact: "インパクト", tabAI: "AIのしくみ",
     storeTitle: "ちょうどいい量をつくる", storeLead: "AIが曜日・天気・気温・地域イベント・予約注文から明日の販売数を商品ごとに予測し、製造数と、売れ残りそうな商品の値引きタイミングを提案します。",
-    tomorrow: "明日の条件", day: "曜日", temp: "気温", event: "近くで地域イベントあり",
+    tomorrow: "明日の条件", storeSel: "店舗", day: "曜日", temp: "気温", event: "近くで地域イベントあり",
     preTitle: "グループ予約注文", preLead: "調理前に利用者やグループが注文します。予約は確定した販売、AIはそれに加えて来店客の需要を予測します。お弁当を8個追加してみてください。", preAdd: "予約を追加",
     planTitle: "AI製造プラン", publish: "売れ残り予定を近くの利用者に掲載",
     colItem: "商品", colPre: "予約", colFc: "AI予測", colHabit: "いつもの量", colAI: "AIの提案", colLeft: "売れ残り予定（いつも→AI）", colMd: "値引き提案",
     kLeft: "明日の売れ残り削減", kLeftSub: "個（いつもの量と比べて）", kKg: "廃棄を防いだ食品", kCo2: "CO₂e削減", kMoney: "仕入れコスト削減",
     publishedMsg: n => `${n}個を利用者アプリに掲載しました ✓`,
-    custTitle: "近くのおいしい食品を、お得に", custLead: "登録した利用者には、近くでまだおいしい食品が値引きされると通知が届きます。予約・支払いをして、期限内に受け取ります。",
+    custTitle: "大手3社を、ひとつのアプリで", custLead: "ログインして、近くのセブン-イレブン・ファミリーマート・ローソンに予約注文。夜はまだおいしい食品を救えます。予約は各店舗のAI予測にそのまま反映されます。",
     alert: n => `🔔 今夜、近くで${n}個のお得な食品があります。00:30までに受け取り。`, noDeals: "まだ掲載がありません。「店舗」タブで「売れ残り予定を掲載」を押してください。",
     reserve: "予約する", left: "残り", pickup: "受取 21:00〜00:30", code: c => `予約完了 ✓ レジでコード ${c} を提示`,
     impTitle: "リアルタイムのインパクト", impLead: "予約と、AIで防いだ売れ残りをここで集計します：食品・お金・CO₂e。",
     iFood: "廃棄を防いだ食品", iCust: "利用者の節約額", iStore: "店舗の売上（廃棄予定品）", iCo2: "CO₂e削減",
     howCalc: "計算方法", reset: "デモをリセット",
     m1: "防いだ食品＝AIプランで減った売れ残り（いつもの量−AIの提案）。店舗がAIプランを採用した場合に計上。",
-    m2: "救った食品＝利用者が予約した商品。重量：弁当450g、おにぎり110g、サンド180g、サラダ200g。",
+    m2: "救った食品＝利用者アプリで注文された値引き品。重量：弁当450g、おにぎり110g、サンド180g、サラダ200g。",
     m3: `CO₂e：防いだ食品×${FACTORS.co2PerKg} kg CO₂e/kg（生産されなかった分）。救った食品×（${FACTORS.co2PerKg}×代替率50%−運営分${FACTORS.opsPerKg}kg）。`,
     m4: "排出係数 3.19 kg CO₂e/kg：Blonk & Mérieux NutriSciences（2024）、EUの食品構成の平均値。概算であり、完全なライフサイクル評価ではありません。",
     m5: "お金：利用者は値引き分を節約し、店舗は本来ゼロだった食品から値引き価格の売上を得ます。",
@@ -68,7 +70,7 @@ const store = {
   set(k, v) { try { localStorage.setItem("gochi_" + k, JSON.stringify(v)); } catch {} },
 };
 const S = {
-  lang: store.get("lang", "en"), tab: location.hash.slice(1) || "store",
+  lang: store.get("lang", "en"), tab: location.hash.slice(1) || "customer", storeId: "s1",
   ctx: { wd: 5, weather: "rain", temp: 14, event: 0, preorders: {} },
   deals: store.get("deals", []), rescued: store.get("rescued", []), prevented: store.get("prevented", []),
   chartItem: "bento",
@@ -79,7 +81,8 @@ const t = k => T[S.lang][k];
 const name = it => (S.lang === "jp" ? it.jp : it.en);
 const yen = n => "¥" + Math.round(n).toLocaleString();
 const $ = s => document.querySelector(s);
-const save = () => { store.set("deals", S.deals); store.set("rescued", S.rescued); store.set("prevented", S.prevented); store.set("lang", S.lang); };
+const save = () => { store.set("prevented", S.prevented); store.set("lang", S.lang); };
+function effCtx() { const app = preordersFor(S.storeId), m = { ...S.ctx.preorders }; for (const k in app) m[k] = (m[k] || 0) + app[k]; return { ...S.ctx, preorders: m }; }
 
 // ---------- render ----------
 function renderStatic() {
@@ -90,14 +93,15 @@ function renderStatic() {
   $("#weather").innerHTML = WEATHER.map(w => `<button data-w="${w}" class="${w === S.ctx.weather ? "on" : ""}">${t("weather")[w]}</button>`).join("");
   const opts = ITEMS.map(it => `<option value="${it.id}">${name(it)}</option>`).join("");
   $("#preItem").innerHTML = opts; $("#chartItem").innerHTML = opts; $("#chartItem").value = S.chartItem;
+  $("#storeSel").innerHTML = STORES.map(s => `<option value="${s.id}" ${s.id === S.storeId ? "selected" : ""}>${storeName(s, S.lang)}</option>`).join("");
   $("#temp").value = S.ctx.temp; $("#event").checked = !!S.ctx.event;
 }
 
 function renderStore() {
   $("#tempOut").textContent = S.ctx.temp + " °C";
-  const rows = plan(models, S.ctx);
+  const rows = plan(models, effCtx());
   S.rows = rows;
-  const pre = Object.entries(S.ctx.preorders).filter(([, q]) => q > 0);
+  const pre = Object.entries(effCtx().preorders).filter(([, q]) => q > 0);
   $("#preList").innerHTML = pre.map(([id, q]) => `<li>${name(ITEMS.find(i => i.id === id))} × ${q}</li>`).join("");
   $("#planTable").innerHTML = `<tr><th>${t("colItem")}</th><th class="num">${t("colPre")}</th><th class="num">${t("colFc")}</th><th class="num">${t("colHabit")}</th><th class="num">${t("colAI")}</th><th>${t("colLeft")}</th><th>${t("colMd")}</th></tr>` +
     rows.map(r => `<tr><td>${name(r)}</td><td class="num">${r.pre || "–"}</td><td class="num">${r.forecast.toFixed(1)}</td><td class="num">${r.habit}</td><td class="num ai">${r.aiMake}</td>
@@ -111,23 +115,11 @@ function renderStore() {
 }
 const kpi = (lab, val, sub = "", cls = "") => `<div class="kpi ${cls}"><div class="lab">${lab}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
 
-function renderCustomer() {
-  const total = S.deals.reduce((s, d) => s + d.qty, 0);
-  $("#alert").textContent = total ? t("alert")(total) : "";
-  $("#alert").style.display = total ? "block" : "none";
-  $("#deals").innerHTML = S.deals.length ? S.deals.map((d, i) => {
-    const it = ITEMS.find(x => x.id === d.id);
-    const newP = Math.round(it.price * (1 - d.discount / 100));
-    return `<div class="deal"><div><div class="t">${name(it)}</div><div class="meta">${t("store")[d.store]} · ${t("pickup")}</div></div>
-      <div style="text-align:right"><span class="old">${yen(it.price)}</span><span class="new">${yen(newP)}</span><div class="meta">${d.qty} ${t("left")}</div></div>
-      ${d.code ? `<div class="code">${t("code")(d.code)}</div>` : ""}
-      ${d.qty > 0 ? `<button class="btn primary" data-reserve="${i}" style="grid-column:1/-1">${t("reserve")}</button>` : ""}</div>`;
-  }).join("") : `<div class="empty">${t("noDeals")}</div>`;
-}
+function renderCustomer() { rerenderCustomer(); }
 
 function renderImpact() {
-  const r = impact(S.prevented, S.rescued);
-  const items = [...S.prevented, ...S.rescued].reduce((s, x) => s + x.qty, 0);
+  const r = impact(S.prevented, rescuedLines());
+  const items = [...S.prevented, ...rescuedLines()].reduce((s, x) => s + x.qty, 0);
   $("#impKpis").innerHTML = kpi(t("iFood"), (r.kgPrevented + r.kgRescued).toFixed(1) + " kg", `${items} items`) +
     kpi(t("iCust"), yen(r.customerSaving), "", "light") + kpi(t("iStore"), yen(r.storeIncome), "", "light") +
     kpi(t("iCo2"), r.co2.toFixed(1) + " kg", "", "light coral");
@@ -139,7 +131,7 @@ function renderAI() {
     ITEMS.map(it => { const m = models[it.id]; const b = (1 - m.maeAI / m.maeHabit) * 100;
       return `<tr><td>${name(it)}</td><td class="num ai">${m.maeAI.toFixed(1)}</td><td class="num">${m.maeHabit.toFixed(1)}</td><td class="num"><span class="pill ${b > 0 ? "good" : "warn"}">${b.toFixed(0)}%</span></td></tr>`; }).join("");
   const m = models[S.chartItem], last = m.rows.slice(-21);
-  const fc = plan(models, S.ctx).find(r => r.id === S.chartItem).forecast;
+  const fc = plan(models, effCtx()).find(r => r.id === S.chartItem).forecast;
   const max = Math.max(fc, ...last.map(r => r.sold)) * 1.1;
   $("#chart").innerHTML = `<div class="bars">${last.map(r => `<div style="height:${(r.sold / max) * 100}%" title="${r.sold}"><span>${r.date.getDate()}</span></div>`).join("")}<div class="fc" style="height:${(fc / max) * 100}%" title="${fc.toFixed(1)}"><span>★</span></div></div>`;
   const w = m.w, top = Math.max(...w.slice(1).map(Math.abs));
@@ -156,13 +148,6 @@ function render() {
 document.addEventListener("click", e => {
   const tab = e.target.closest("[data-tab]"); if (tab) { S.tab = tab.dataset.tab; location.hash = S.tab; render(); return; }
   const w = e.target.closest("[data-w]"); if (w) { S.ctx.weather = w.dataset.w; renderStatic(); render(); return; }
-  const rv = e.target.closest("[data-reserve]");
-  if (rv) {
-    const d = S.deals[+rv.dataset.reserve]; if (d.qty <= 0) return;
-    d.qty -= 1; d.code = String(Math.floor(1000 + Math.random() * 9000));
-    S.rescued.push({ id: d.id, qty: 1, kg: ITEMS.find(x => x.id === d.id).kg, price: ITEMS.find(x => x.id === d.id).price, discount: d.discount });
-    save(); render();
-  }
 });
 $("#lang").onclick = () => { S.lang = S.lang === "en" ? "jp" : "en"; save(); renderStatic(); render(); };
 $("#wd").onchange = e => { S.ctx.wd = +e.target.value; render(); };
@@ -174,12 +159,15 @@ $("#preAdd").onclick = () => {
   S.ctx.preorders[id] = (S.ctx.preorders[id] || 0) + q; render();
 };
 $("#publish").onclick = () => {
-  const rows = S.rows || plan(models, S.ctx);
-  S.deals = rows.filter(r => r.leftoverAI > 0).map((r, i) => ({ id: r.id, qty: r.leftoverAI, discount: r.discount, store: i % 2 }));
+  const rows = S.rows || plan(models, effCtx());
+  const list = rows.filter(r => r.leftoverAI > 0).map(r => ({ id: r.id, qty: r.leftoverAI, discount: r.discount }));
+  publishDeals(S.storeId, list);
   S.prevented = rows.filter(r => r.leftoverHabit > r.leftoverAI).map(r => ({ id: r.id, qty: r.leftoverHabit - r.leftoverAI, kg: r.kg, price: r.price }));
-  save(); $("#published").textContent = t("publishedMsg")(S.deals.reduce((s, d) => s + d.qty, 0)); render();
+  save(); $("#published").textContent = t("publishedMsg")(list.reduce((s, d) => s + d.qty, 0)); render();
 };
-$("#reset").onclick = () => { S.deals = []; S.rescued = []; S.prevented = []; S.ctx.preorders = {}; save(); $("#published").textContent = ""; render(); };
-window.addEventListener("hashchange", () => { S.tab = location.hash.slice(1) || "store"; render(); });
+$("#reset").onclick = () => { resetCustomer(); S.prevented = []; S.ctx.preorders = {}; save(); $("#published").textContent = ""; render(); };
+window.addEventListener("hashchange", () => { S.tab = location.hash.slice(1) || "customer"; render(); });
+$("#storeSel").onchange = e => { S.storeId = e.target.value; render(); };
 
+mountCustomer($("#custApp"), { lang: () => S.lang, onChange: () => { renderStore(); renderImpact(); } });
 renderStatic(); render();

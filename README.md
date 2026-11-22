@@ -13,10 +13,13 @@ HiroshimAI Foodtech Hackathon 2026 · Team: Jobayer · Tawhid · Aya (Eikei Univ
 
 | Screen | What you see |
 |---|---|
-| **Store** | Set tomorrow's day, weather, temperature and local events. The **AI forecasts sales for each item**, compares the usual plan with the AI plan, and suggests a discount time and rate for expected leftovers. Group pre-orders are added as certain sales. |
-| **Customer** | Nearby still-good food at a discount. Reserve, then get a pickup code. Pickup is 21:00–00:30, before the food is removed. |
+| **Customer app** | Phone-style app. **Log in** (demo, no password), then see **9 nearby stores from all three big chains: Seven-Eleven, FamilyMart and Lawson** on a map and in a list. Filter by chain or search. Each store has a **pre-order menu** with pickup slots (07:30 / 12:00 / 18:00, today or tomorrow) and **tonight's leftover deals**. Add to the **cart**, choose a pickup time, and **place the order**. Orders show a pickup code and a live status (placed → accepted → preparing → ready). The profile shows your own impact. |
+| **Store** | Pick a store, then set tomorrow's day, weather, temperature and local events. The **AI forecasts sales for each item**, and **customer pre-orders from the app are added automatically**. It compares the usual plan with the AI plan, suggests discounts for expected leftovers, and lists them in the customer app with one click. |
 | **Impact** | Live totals: food kept out of the bin, customers' savings, store income from leftovers, and CO₂e avoided, with the method shown. |
 | **How the AI works** | Model accuracy on unseen days (AI vs the usual method), sales history with tomorrow's forecast, and what the model learned (the effect of each factor). |
+
+**Three chains, one platform:** customers don't need three apps. Stores of different chains appear side by side.
+> Demo stores: no partnership with any chain exists. Store locations, menus and stock are illustrative, and logins and orders are saved only in your browser.
 
 English / 日本語 switch in the top right.
 
@@ -68,12 +71,16 @@ Then open http://localhost:8765. Opening `index.html` directly doesn't work, bec
 index.html        page structure
 css/styles.css    design (navy, teal, coral)
 js/model.js       demo data, ML model (ridge regression), plan and impact formulas
-js/app.js         screens, English/Japanese text, interactions
+js/app.js         dashboard screens, English/Japanese text
+js/customer.js    customer app: login, stores, menus, cart, orders
+js/stores.js      demo stores of the three chains, pickup slots, deals
+css/customer.css  customer app design and motion (respects reduced-motion)
 ```
 
 ## 7-minute demo path (for the final)
 
-1. **Store:** Friday, rain, 14 °C → show the AI forecast vs the usual plan, and the leftovers going down.
+0. **Customer app:** log in, browse the three chains on the map, pre-order 2 bento for tomorrow 12:00 at Seven-Eleven Noboricho, add a discounted leftover, and check out. The order turns "Ready for pickup".
+1. **Store** (Seven-Eleven Noboricho): your customer pre-order is already in the forecast. Friday, rain, 14 °C → show the AI forecast vs the usual plan, and the leftovers going down.
 2. **Add a group pre-order** (8 bento) → the forecast rises by exactly 8 (certain sales).
 3. **Switch to sunny and 28 °C** → salads and sandwiches go up, bento goes down (the AI learned it).
 4. **"List expected leftovers"** → **Customer:** alert, then reserve, then the pickup code.
