@@ -5,7 +5,7 @@
 
 HiroshimAI Foodtech Hackathon 2026 · Team: Jobayer · Tawhid · Aya (Eikei University of Hiroshima, Faculty of Social System Design)
 
-> **Live demo:** `https://<your-github-name>.github.io/gochi-cycle/` (after GitHub Pages is switched on, see below)
+> **Live demo:** https://jobayer2000.github.io/gochi-cycle/ · **Code:** https://github.com/Jobayer2000/gochi-cycle
 
 ---
 
