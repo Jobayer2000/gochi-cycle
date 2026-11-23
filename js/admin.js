@@ -48,9 +48,9 @@ function render() {
     root.innerHTML = `<div class="app admin"><div class="scr"><div class="plogin">
       <svg class="biglogo" viewBox="0 0 64 64" aria-hidden="true"><path d="M10 27a22 22 0 0 1 44 0" fill="none" stroke="var(--soft)" stroke-width="8" stroke-linecap="round"/><path d="M54 37a22 22 0 0 1-44 0" fill="none" stroke="var(--coral)" stroke-width="8" stroke-linecap="round"/></svg>
       <h2>${t("hq")}</h2><p class="muted">${t("lead")}</p>
-      <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="aEmail" type="email" autocomplete="username" inputmode="email"></label>
-      <label class="fld"><span>${t("pw")}</span><input id="aPw" type="password" autocomplete="current-password"></label>
-      <button class="cbtn primary" data-aenter>${t("enter")}</button></form><p class="fine">Demo: hq@gochi.demo · admin1234</p></div></div></div>`;
+      <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="aEmail" type="email" autocomplete="username" inputmode="email" value="hq@gochi.demo"></label>
+      <label class="fld"><span>${t("pw")}</span><input id="aPw" type="password" autocomplete="current-password" value="admin1234"></label>
+      <button class="cbtn primary" data-aenter>${t("enter")}</button></form><p class="fine">Demo login is filled in: just tap Sign in. (hq@gochi.demo · admin1234)</p></div></div></div>`;
     return;
   }
   const p = platformStats();

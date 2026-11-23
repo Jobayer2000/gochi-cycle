@@ -78,12 +78,12 @@ function loginView() {
     <div class="mode auth"><button class="${V.auth === "in" ? "on" : ""}" data-auth="in">${t("signin")}</button><button class="${V.auth === "up" ? "on" : ""}" data-auth="up">${t("signup")}</button><i style="transform:translateX(${V.auth === "in" ? 0 : 100}%)"></i></div>
     <form class="authf" onsubmit="return false">
       ${V.auth === "up" ? `<label class="fld"><span>${t("name")}</span><input id="cName" maxlength="24" autocomplete="nickname" placeholder="Jobayer"></label>` : ""}
-      <label class="fld"><span>${t("email")}</span><input id="cEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com"></label>
-      <label class="fld"><span>${V.auth === "up" ? t("pw6") : t("pw")}</span><input id="cPw" type="password" autocomplete="${V.auth === "up" ? "new-password" : "current-password"}"></label>
+      <label class="fld"><span>${t("email")}</span><input id="cEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" value="${V.auth === "in" ? "demo@gochi.demo" : ""}"></label>
+      <label class="fld"><span>${V.auth === "up" ? t("pw6") : t("pw")}</span><input id="cPw" type="password" autocomplete="${V.auth === "up" ? "new-password" : "current-password"}" value="${V.auth === "in" ? "demo1234" : ""}"></label>
       <button class="cbtn primary" data-act="${V.auth === "up" ? "signup" : "signin"}">${V.auth === "up" ? t("signup") : t("signin")}</button>
     </form>
     <button class="cbtn ghost" data-act="guest">${t("guest")}</button>
-    <p class="fine">Demo: demo@gochi.demo · demo1234</p>
+    <p class="fine">Demo login is filled in: just tap Sign in. (demo@gochi.demo · demo1234)</p>
     <p class="fine">${t("loginNote")}</p></div>`;
 }
 

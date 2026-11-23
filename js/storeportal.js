@@ -8,7 +8,7 @@ import { countAll, resetCounts, toast, haptic } from "./ui.js";
 
 const T = {
   en: {
-    portal: "Store portal", authLead: "Sell what you would throw away, and make the right amount with AI.", signinE: "Sign in with email", register: "Register your store", quick: "Staff quick sign-in (PIN)",
+    portal: "Store portal", authLead: "Sell what you would throw away, and make the right amount with AI.", signinE: "Sign in with email", register: "Register your store", quick: "Demo sign-in · any 4-digit PIN", anyPin: "Demo: pick a store, then type any 4 digits (e.g. 1234).",
     email: "Email", pin4: "4-digit PIN", yourName: "Manager name", whichStore: "Your store", create: "Create store account", errWrong: "Email or PIN is wrong.", errExists: "This email is already registered.", errInvalid: "Fill in all fields; PIN must be 4 digits.", welcome: n => `Welcome, ${n}!`, regNote: "Demo: accounts stay in this browser. Real stores would verify ownership with the chain.",
     pick: "Choose your store", who: "Who is working?", pin: "Enter PIN", demoPins: "Demo PINs · manager 1111 · staff 2222", wrong: "Wrong PIN",
     manager: "Manager", staff: "Staff", tabs: ["Today", "Listings", "Orders", "Wallet", "More"],
@@ -35,7 +35,7 @@ const T = {
     wn: { base: "base", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", cloudy: "cloudy", rain: "rain", temperature: "+1 °C", "local event": "local event" },
   },
   jp: {
-    portal: "店舗ポータル", authLead: "捨てるはずの食品を売り、AIでちょうどいい量を。", signinE: "メールでログイン", register: "店舗を登録", quick: "スタッフ簡単ログイン（PIN）",
+    portal: "店舗ポータル", authLead: "捨てるはずの食品を売り、AIでちょうどいい量を。", signinE: "メールでログイン", register: "店舗を登録", quick: "デモログイン・4桁PINなら何でもOK", anyPin: "デモ：店舗を選び、4桁の数字を入力（例：1234）。",
     email: "メールアドレス", pin4: "4桁のPIN", yourName: "店長の名前", whichStore: "店舗", create: "店舗アカウントを作成", errWrong: "メールアドレスまたはPINが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "すべて入力してください（PINは4桁）。", welcome: n => `ようこそ、${n}さん！`, regNote: "デモ：アカウントはこのブラウザ内だけ。実際はチェーン本部で店舗確認を行います。",
     pick: "店舗を選択", who: "担当者は？", pin: "PINを入力", demoPins: "デモPIN・店長 1111・スタッフ 2222", wrong: "PINが違います",
     manager: "店長", staff: "スタッフ", tabs: ["今日", "出品", "注文", "ウォレット", "その他"],
@@ -86,10 +86,10 @@ function preFromApp(store) {
 function loginView() {
   if (P.step === "home") return `<div class="plogin"><svg class="biglogo" viewBox="0 0 64 64" aria-hidden="true"><path d="M10 27a22 22 0 0 1 44 0" fill="none" stroke="var(--soft)" stroke-width="8" stroke-linecap="round"/><path d="M54 37a22 22 0 0 1-44 0" fill="none" stroke="var(--coral)" stroke-width="8" stroke-linecap="round"/></svg>
     <h2>${t("portal")}</h2><p class="muted">${t("authLead")}</p>
-    <button class="cbtn primary" data-pstep="signin">${t("signinE")}</button><button class="cbtn ghost" data-pstep="signup">${t("register")}</button><button class="cbtn ghost" data-pstep="store">${t("quick")}</button></div>`;
+    <button class="cbtn primary" data-pstep="store">${t("quick")}</button><p class="fine">${t("anyPin")}</p><button class="cbtn ghost" data-pstep="signin">${t("signinE")}</button><button class="cbtn ghost" data-pstep="signup">${t("register")}</button></div>`;
   if (P.step === "signin") return `<div class="plogin"><button class="back" data-pstep="home">‹</button><h2>${t("signinE")}</h2>
-    <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="sEmail" type="email" autocomplete="email" inputmode="email"></label>
-    <label class="fld"><span>${t("pin4")}</span><input id="sPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password"></label>
+    <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="sEmail" type="email" autocomplete="email" inputmode="email" value="store@gochi.demo"></label>
+    <label class="fld"><span>${t("pin4")}</span><input id="sPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" value="1111"></label>
     <button class="cbtn primary" data-sauth="in">${t("signinE")}</button></form><p class="fine">Demo: store@gochi.demo · PIN 1111</p></div>`;
   if (P.step === "signup") return `<div class="plogin"><button class="back" data-pstep="home">‹</button><h2>${t("register")}</h2>
     <form class="authf" onsubmit="return false"><label class="fld"><span>${t("whichStore")}</span><select id="sStore">${STORES.map(s => `<option value="${s.id}">${storeName(s, L())}</option>`).join("")}</select></label>
@@ -103,10 +103,10 @@ function loginView() {
   if (P.step === "who") return `<div class="plogin"><button class="back" data-pstep="store">‹</button><h2>${storeLabel(s, L())}</h2><p class="muted">${t("who")}</p>
     <div class="who">${staffFor(s.id).map(p => `<button class="person" data-pickstaff="${p.id}"><span class="avatar">${p.name[0]}</span><b>${p.name}</b><small>${t(p.role)}</small></button>`).join("")}</div></div>`;
   const p = staffFor(s.id).find(x => x.id === P.staff);
-  return `<div class="plogin"><button class="back" data-pstep="who">‹</button><span class="avatar big">${p.name[0]}</span><h2>${p.name}</h2><p class="muted">${t("pin")}</p>
+  return `<div class="plogin"><button class="back" data-pstep="store">‹</button><span class="avatar big">${p.name[0]}</span><h2>${p.name}</h2><p class="muted">${t("pin")}</p>
     <div class="pindots ${P.pinErr ? "shake" : ""}">${[0, 1, 2, 3].map(i => `<i class="${i < P.pin.length ? "on" : ""}"></i>`).join("")}</div>
     <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(k => k === "" ? "<span></span>" : `<button data-key="${k}">${k}</button>`).join("")}</div>
-    <p class="fine">${t("demoPins")}</p></div>`;
+    <p class="fine">${t("anyPin")}</p></div>`;
 }
 
 // ---------- tabs ----------
@@ -260,14 +260,14 @@ export function mountPortal(el, context) {
         .then(r => { if (r === "ok") { lastNotes = notesFor(S().store).length; P.tab = 0; toast(t("welcome")(S().name), "ok"); go(() => {}); } else toast(t(r === "exists" ? "errExists" : r === "invalid" ? "errInvalid" : "errWrong"), "err"); });
       return;
     }
-    if (d.pickstore) { go(() => { P.store = d.pickstore; P.step = "who"; }); return; }
+    if (d.pickstore) { go(() => { P.store = d.pickstore; P.staff = "m"; P.step = "pin"; P.pin = ""; }); return; }
     if (d.pickstaff) { go(() => { P.staff = d.pickstaff; P.step = "pin"; P.pin = ""; }); return; }
     if (d.pstep) { go(() => { P.step = d.pstep; P.pin = ""; }); return; }
     if (d.key !== undefined) {
       if (d.key === "⌫") P.pin = P.pin.slice(0, -1); else if (P.pin.length < 4) P.pin += d.key;
       P.pinErr = false; haptic(5);
       if (P.pin.length === 4) { const p = staffFor(P.store).find(x => x.id === P.staff);
-        if (p.pin === P.pin) { DB.session = { store: P.store, staff: p.id, role: p.role, name: p.name }; commit({}); lastNotes = notesFor(P.store).length; P.tab = 0; go(() => {}); return; }
+        if (/^\d{4}$/.test(P.pin)) { DB.session = { store: P.store, staff: p.id, role: p.role, name: p.name }; commit({}); lastNotes = notesFor(P.store).length; P.tab = 0; go(() => {}); return; }
         P.pin = ""; P.pinErr = true; toast(t("wrong"), "err"); }
       render(); return;
     }
