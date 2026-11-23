@@ -90,7 +90,7 @@ function loginView() {
   if (P.step === "signin") return `<div class="plogin"><button class="back" data-pstep="home">‹</button><h2>${t("signinE")}</h2>
     <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="sEmail" type="email" autocomplete="email" inputmode="email"></label>
     <label class="fld"><span>${t("pin4")}</span><input id="sPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password"></label>
-    <button class="cbtn primary" data-sauth="in">${t("signinE")}</button></form></div>`;
+    <button class="cbtn primary" data-sauth="in">${t("signinE")}</button></form><p class="fine">Demo: store@gochi.demo · PIN 1111</p></div>`;
   if (P.step === "signup") return `<div class="plogin"><button class="back" data-pstep="home">‹</button><h2>${t("register")}</h2>
     <form class="authf" onsubmit="return false"><label class="fld"><span>${t("whichStore")}</span><select id="sStore">${STORES.map(s => `<option value="${s.id}">${storeName(s, L())}</option>`).join("")}</select></label>
     <label class="fld"><span>${t("yourName")}</span><input id="sName" maxlength="20" autocomplete="name"></label>

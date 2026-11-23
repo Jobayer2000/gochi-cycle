@@ -83,6 +83,7 @@ function loginView() {
       <button class="cbtn primary" data-act="${V.auth === "up" ? "signup" : "signin"}">${V.auth === "up" ? t("signup") : t("signin")}</button>
     </form>
     <button class="cbtn ghost" data-act="guest">${t("guest")}</button>
+    <p class="fine">Demo: demo@gochi.demo · demo1234</p>
     <p class="fine">${t("loginNote")}</p></div>`;
 }
 

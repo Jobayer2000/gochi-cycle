@@ -17,7 +17,7 @@ HiroshimAI Foodtech Hackathon 2026 · Team: Jobayer · Tawhid · Aya (Eikei Univ
 - **Live demo:** on a laptop, the customer phone and the store portal sit side by side, so an order placed on one appears on the other at once. On a phone, switch roles at the top.
 - **Real food photos** (Wikimedia Commons, see [credits](credits.html)), chain names in each chain's colour (no logos), hover colours everywhere, and motion that respects reduced-motion settings.
 
-Demo PINs: store staff **1111** (manager) and **2222** (staff); Gochi HQ **0000**.
+Demo logins: store email **store@gochi.demo** + PIN **1111** (or quick staff PIN 1111 / 2222) · customer **demo@gochi.demo** + **demo1234** · Gochi HQ PIN **0000**.
 
 ## What it does
 

@@ -28,14 +28,22 @@ function seed() {
 
 export let DB = load();
 DB.accounts ||= { customers: [], stores: [] };
+// Ready-made demo accounts (PIN 1111 / password demo1234), so sign-in works without registering first.
+const DEMO_STORE = { store: "s1", name: "Tanaka", email: "store@gochi.demo", pin: "0ffe1abd1a08215353c233d6e009613e95eec4253832a761af28ff37ac5a150c", staff: "m", at: 0 };
+const DEMO_CUST = { name: "Demo", email: "demo@gochi.demo", pw: "0ead2060b65992dca4769af601a1b3a35ef38cfad2c2c465bb160ea764157c5d", at: 0 };
+function ensureDemo() {
+  if (!DB.accounts.stores.some(a => a.email === DEMO_STORE.email)) DB.accounts.stores.push({ ...DEMO_STORE });
+  if (!DB.accounts.customers.some(a => a.email === DEMO_CUST.email)) DB.accounts.customers.push({ ...DEMO_CUST });
+}
+ensureDemo();
 function load() { try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && v.listings) return v; } catch {} return seed(); }
 export function commit(note) {
   try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch {}
   listeners.forEach(f => f(note));
 }
 export const subscribe = f => (listeners.add(f), () => listeners.delete(f));
-window.addEventListener("storage", e => { if (e.key === KEY) { DB = load(); listeners.forEach(f => f({ remote: true })); } });
-export function resetAll() { const keepUser = DB.user; DB = seed(); DB.user = keepUser; commit({ reset: true }); }
+window.addEventListener("storage", e => { if (e.key === KEY) { DB = load(); DB.accounts ||= { customers: [], stores: [] }; listeners.forEach(f => f({ remote: true })); } });
+export function resetAll() { const keepUser = DB.user, keepAcc = DB.accounts; DB = seed(); DB.user = keepUser; DB.accounts = keepAcc; ensureDemo(); commit({ reset: true }); }
 
 // ---------- listings ----------
 export const listingsFor = store => DB.listings.filter(l => l.store === store && l.qty - l.sold > 0);
