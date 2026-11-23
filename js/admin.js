@@ -1,11 +1,11 @@
 // Gochi HQ (our side): platform income, commission, store payouts, growth scenarios.
 import { STORES, CHAINS, storeById, storeLabel } from "./stores.js";
-import { DB, commit, subscribe, platformStats, FEE, PROCESSING } from "./state.js";
+import { DB, commit, subscribe, platformStats, FEE, PROCESSING, hash } from "./state.js";
 import { countAll, resetCounts, toast } from "./ui.js";
 
 const T = {
   en: {
-    hq: "Gochi HQ", lead: "Our side: how the platform earns, pays stores and grows.", pin: "Admin PIN (demo: 0000)", enter: "Enter", wrong: "Wrong PIN",
+    hq: "Gochi HQ", lead: "Our side: how the platform earns, pays stores and grows.", email: "Admin email", pw: "Password", enter: "Sign in", wrong: "Email or password is wrong.",
     live: "Live from this demo", gmv: "Sales through Gochi (GMV)", commission: f => `Our commission (${f}%)`, processing: f => `Payment processing (${f}%)`, net: "Our net income",
     pending: "Owed to stores", paid: "Paid out to stores", orders: "Orders", customers: "Customers", active: "Active stores", food: "Food rescued", co2: "CO₂e avoided", accounts: "Store accounts",
     howTitle: "How Gochi Cycle earns", how: [
@@ -22,7 +22,7 @@ const T = {
     logout: "Log out", demo: "Demo data in this browser only. No real money moves.",
   },
   jp: {
-    hq: "Gochi本部", lead: "私たちの側：プラットフォームの収益、店舗への支払い、成長。", pin: "管理者PIN（デモ：0000）", enter: "入る", wrong: "PINが違います",
+    hq: "Gochi本部", lead: "私たちの側：プラットフォームの収益、店舗への支払い、成長。", email: "管理者メール", pw: "パスワード", enter: "ログイン", wrong: "メールアドレスまたはパスワードが違います。",
     live: "このデモのリアルタイム集計", gmv: "Gochi経由の売上（流通総額）", commission: f => `手数料収入（${f}%）`, processing: f => `決済コスト（${f}%）`, net: "純収入",
     pending: "店舗への未払い", paid: "店舗へ支払済み", orders: "注文", customers: "利用者", active: "稼働店舗", food: "救った食品", co2: "CO₂e削減", accounts: "店舗アカウント",
     howTitle: "Gochi Cycleの収益モデル", how: [
@@ -48,8 +48,9 @@ function render() {
     root.innerHTML = `<div class="app admin"><div class="scr"><div class="plogin">
       <svg class="biglogo" viewBox="0 0 64 64" aria-hidden="true"><path d="M10 27a22 22 0 0 1 44 0" fill="none" stroke="var(--soft)" stroke-width="8" stroke-linecap="round"/><path d="M54 37a22 22 0 0 1-44 0" fill="none" stroke="var(--coral)" stroke-width="8" stroke-linecap="round"/></svg>
       <h2>${t("hq")}</h2><p class="muted">${t("lead")}</p>
-      <form class="authf" onsubmit="return false"><label class="fld"><span>${t("pin")}</span><input id="aPin" type="password" inputmode="numeric" maxlength="4"></label>
-      <button class="cbtn primary" data-aenter>${t("enter")}</button></form></div></div></div>`;
+      <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="aEmail" type="email" autocomplete="username" inputmode="email"></label>
+      <label class="fld"><span>${t("pw")}</span><input id="aPw" type="password" autocomplete="current-password"></label>
+      <button class="cbtn primary" data-aenter>${t("enter")}</button></form><p class="fine">Demo: hq@gochi.demo · admin1234</p></div></div></div>`;
     return;
   }
   const p = platformStats();
@@ -78,7 +79,10 @@ export function mountAdmin(el, context) {
   subscribe(() => render());
   root.addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
-    if (b.dataset.aenter !== undefined) { if (root.querySelector("#aPin").value === "0000") { DB.admin = true; commit({}); resetCounts("a:"); } else toast(t("wrong"), "err"); }
+    if (b.dataset.aenter !== undefined) {
+      const em = (root.querySelector("#aEmail").value || "").trim().toLowerCase();
+      hash(root.querySelector("#aPw").value || "").then(h => { if (em === "hq@gochi.demo" && h === "ac9689e2272427085e35b9d3e3e8bed88cb3434828b43b86fc0596cad4c6e270") { DB.admin = true; resetCounts("a:"); commit({}); } else toast(t("wrong"), "err"); });
+    }
     if (b.dataset.alogout !== undefined) { DB.admin = false; commit({}); }
   });
 }
