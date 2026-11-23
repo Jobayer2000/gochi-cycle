@@ -9,6 +9,16 @@ HiroshimAI Foodtech Hackathon 2026 · Team: Jobayer · Tawhid · Aya (Eikei Univ
 
 ---
 
+
+## New in this version
+- **Accounts:** customers can sign up, sign in, sign out or try as a guest. Stores can register, sign in with email and PIN, or use a quick staff PIN. Demo accounts are stored only in your browser, with passwords hashed. Please don't use real passwords.
+- **Store portal:** tomorrow's AI plan (customer pre-orders included), listings with an **AI discount suggestion**, live **"sold" notifications**, an orders board (accept, ready, picked up), a **wallet** (sales, 8% fee, balance, payout request), reports (count-up numbers, a 7-day chart, AI accuracy), and staff roles (manager or staff; staff can discount up to 30%).
+- **Gochi HQ (our side):** live sales (GMV), our commission, payment costs, net income, money owed and paid to stores, customers, impact, how we earn, and growth scenarios from the team model. Demo PIN: 0000.
+- **Live demo:** on a laptop, the customer phone and the store portal sit side by side, so an order placed on one appears on the other at once. On a phone, switch roles at the top.
+- **Real food photos** (Wikimedia Commons, see [credits](credits.html)), chain names in each chain's colour (no logos), hover colours everywhere, and motion that respects reduced-motion settings.
+
+Demo PINs: store staff **1111** (manager) and **2222** (staff); Gochi HQ **0000**.
+
 ## What it does
 
 | Screen | What you see |

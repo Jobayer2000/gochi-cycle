@@ -1,0 +1,26 @@
+{
+ "bento": {
+  "title": "Bento 001.jpg",
+  "author": "Ocdp",
+  "license": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Bento_001.jpg"
+ },
+ "karaage": {
+  "title": "Chicken karaage bento by adactio in Brighton.jpg",
+  "author": "adactio from Sushi bar Moshi Moshi in Opticon, Bartholomew Square, Brighton, UK",
+  "license": "CC BY 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Chicken_karaage_bento_by_adactio_in_Brighton.jpg"
+ },
+ "salmon": {
+  "title": "Onigiri 1.jpg",
+  "author": "joo0ey",
+  "license": "CC BY 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Onigiri_1.jpg"
+ },
+ "tuna": {
+  "title": "Onigiri 002.jpg",
+  "author": "Ocdp",
+  "license": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Onigiri_002.jpg"
+ }
+}

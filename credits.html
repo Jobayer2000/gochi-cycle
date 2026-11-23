@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gochi Cycle · Photo credits</title>
+  <style>
+    body{margin:0;background:#F6F5F1;color:#13242B;font-family:"Segoe UI","Hiragino Sans",system-ui,sans-serif;line-height:1.5}
+    main{max-width:720px;margin:0 auto;padding:32px 16px}
+    h1{color:#0D2B36;margin:0 0 6px}
+    p{color:#66777C}
+    li{background:#fff;border:1px solid #E1E6E4;border-radius:14px;padding:12px 14px;margin-bottom:10px;list-style:none;display:flex;gap:12px;align-items:center}
+    img{width:64px;height:48px;object-fit:cover;border-radius:8px;flex:none;background:#E4F0EE}
+    ul{padding:0}
+    a{color:#25766f}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Photo credits</h1>
+    <p>Food photos are from Wikimedia Commons and are used under their licences. Chain names are used only to describe stores; no logos are used, and no partnership exists. <a href="./">Back to the app</a></p>
+    <ul id="list"></ul>
+  </main>
+  <script>
+    fetch("assets/food/credits.json").then(r => r.json()).then(c => {
+      document.getElementById("list").innerHTML = Object.entries(c).map(([k, v]) => {
+        const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+        return `<li><img src="assets/food/${k}.jpg" alt=""><div><b>${esc(v.title)}</b><br>${esc(v.author)} · ${esc(v.license)} · <a href="${esc(v.page)}">source</a></div></li>`;
+      }).join("");
+    }).catch(() => { document.getElementById("list").innerHTML = "<li>Credits could not be loaded.</li>"; });
+  </script>
+</body>
+</html>

@@ -21,7 +21,7 @@ export const ITEMS = [
   { id: "karaage", en: "Karaage bento",      jp: "唐揚げ弁当",       price: 580, kg: 0.45, base: 18, rainEffect: +2, tempEffect: -0.10 },
   { id: "salmon",  en: "Salmon rice ball",   jp: "鮭おにぎり",       price: 160, kg: 0.11, base: 45, rainEffect: -4, tempEffect: +0.10 },
   { id: "tuna",    en: "Tuna-mayo rice ball",jp: "ツナマヨおにぎり", price: 150, kg: 0.11, base: 50, rainEffect: -5, tempEffect: +0.12 },
-  { id: "sand",    en: "Mixed sandwich",     jp: "ミックスサンド",   price: 330, kg: 0.18, base: 20, rainEffect: -2, tempEffect: +0.20 },
+  { id: "sand",    en: "Katsu sandwich",     jp: "カツサンド",       price: 330, kg: 0.18, base: 20, rainEffect: -2, tempEffect: +0.20 },
   { id: "salad",   en: "Fresh salad",        jp: "サラダ",           price: 300, kg: 0.20, base: 12, rainEffect: -2, tempEffect: +0.35 },
 ];
 // weekday multipliers, Sun..Sat
