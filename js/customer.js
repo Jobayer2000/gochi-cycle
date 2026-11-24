@@ -3,11 +3,11 @@
 import { ITEMS } from "./model.js";
 import { CHAINS, STORES, SLOTS, PHOTO, storeById, storeLabel, storeName, menuFor } from "./stores.js";
 import { DB, commit, subscribe, listingsFor, placeOrder, myOrders, impactOf, signInCustomer, signUpCustomer } from "./state.js";
-import { countAll, resetCounts, toast, haptic } from "./ui.js";
+import { countAll, resetCounts, toast, haptic, ico } from "./ui.js";
 
 const C = {
   en: {
-    hello: n => `Hi, ${n}`, near: "Near Noboricho, Hiroshima", search: "Search food or store",
+    hello: n => `Signed in as ${n}`, near: "Noboricho, Hiroshima", homeTitle: "Food near you", search: "Search food or store",
     all: "All", modePre: "Pre-order", modeDeal: "Tonight's deals", oneApp: "Three chains, one app",
     preHint: "Order before the store cooks: it makes the right amount, you skip the queue.",
     dealHint: "Still-good food at a lower price. Pick up 21:00–00:30.",
@@ -23,12 +23,12 @@ const C = {
     loginTitle: "Waste nothing,\ncycle everything.", loginLead: "Pre-order from Seven-Eleven, FamilyMart and Lawson near you, and rescue good food tonight.",
     name: "Your name", go: "Continue", guest: "Try as guest", loginNote: "Demo accounts are saved only in this browser (password hashed). Please don't use a real password.",
     signin: "Sign in", signup: "Create account", email: "Email", pw: "Password", pw6: "Password (6+ characters)", noAcc: "New here?", haveAcc: "Already have an account?",
-    errWrong: "Email or password is wrong.", errExists: "An account with this email already exists.", errInvalid: "Please fill in name, a valid email and a 6+ character password.", welcome: n => `Welcome, ${n}!`, bye: "Signed out",
-    demo: "Demo stores: no partnership with any chain yet.", done: "Order placed!", doneSub: c => `Show code ${c} at the counter`,
-    readyToast: s => `Your order at ${s} is ready 🎉`, addedToast: n => `${n} added`,
+    errWrong: "Email or password is wrong.", errExists: "An account with this email already exists.", errInvalid: "Please fill in name, a valid email and a 6+ character password.", welcome: n => `Signed in as ${n}`, bye: "Signed out",
+    demo: "Demo stores: no partnership with any chain yet.", done: "Order placed", doneSub: c => `Show code ${c} at the counter`,
+    readyToast: s => `Your order at ${s} is ready for pickup`, addedToast: n => `${n} added`,
   },
   jp: {
-    hello: n => `こんにちは、${n}さん`, near: "広島市・幟町付近", search: "食品や店舗を検索",
+    hello: n => `${n}さんでログイン中`, near: "広島市・幟町", homeTitle: "近くの食品", search: "食品や店舗を検索",
     all: "すべて", modePre: "予約注文", modeDeal: "今夜のお得", oneApp: "大手3社を、ひとつのアプリで",
     preHint: "調理前に注文。お店は作りすぎず、あなたは待たずに受け取れます。",
     dealHint: "まだおいしい食品をお得に。受取 21:00〜00:30。",
@@ -44,9 +44,9 @@ const C = {
     loginTitle: "ムダにしない。\nすべてを循環させる。", loginLead: "近くのセブン-イレブン、ファミリーマート、ローソンで予約注文。今夜はおいしい食品を救おう。",
     name: "お名前", go: "はじめる", guest: "ゲストで試す", loginNote: "デモ用アカウントはこのブラウザ内だけに保存されます（パスワードはハッシュ化）。実際のパスワードは使わないでください。",
     signin: "ログイン", signup: "アカウント作成", email: "メールアドレス", pw: "パスワード", pw6: "パスワード（6文字以上）", noAcc: "はじめての方", haveAcc: "アカウントをお持ちの方",
-    errWrong: "メールアドレスまたはパスワードが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "名前・正しいメール・6文字以上のパスワードを入力してください。", welcome: n => `ようこそ、${n}さん！`, bye: "ログアウトしました",
-    demo: "デモ店舗：現在どのチェーンとも提携していません。", done: "注文しました！", doneSub: c => `レジでコード ${c} を提示`,
-    readyToast: s => `${s}のご注文が受取できます 🎉`, addedToast: n => `${n}を追加`,
+    errWrong: "メールアドレスまたはパスワードが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "名前・正しいメール・6文字以上のパスワードを入力してください。", welcome: n => `${n}さんでログインしました`, bye: "ログアウトしました",
+    demo: "デモ店舗：現在どのチェーンとも提携していません。", done: "注文しました", doneSub: c => `レジでコード ${c} を提示`,
+    readyToast: s => `${s}のご注文が受取できます`, addedToast: n => `${n}を追加`,
   },
 };
 
@@ -93,7 +93,7 @@ function homeView() {
     .filter(s => !q || storeName(s, L()).toLowerCase().includes(q) || menuFor(s).some(m => (m.en + m.jp).toLowerCase().includes(q)))
     .filter(s => V.mode === "pre" || dealCount(s.id) > 0).sort((a, b) => a.km - b.km);
   const u = DB.user.name;
-  return `<header class="hello"><div><small>📍 ${t("near")}</small><b>${t("hello")(u)}</b></div><button class="avatar" data-nav="profile">${u.slice(0, 1).toUpperCase()}</button></header>
+  return `<header class="hello"><div><small>${ico("pin", 14)} ${t("near")}</small><b>${t("homeTitle")}</b></div><button class="avatar" data-nav="profile">${u.slice(0, 1).toUpperCase()}</button></header>
     <div class="banner"><div><b>${t("oneApp")}</b><small>${Object.values(CHAINS).map(c => `<span style="color:${c.color}">${c[L()]}</span>`).join(" · ")}</small></div>${img("bento", "bannerimg")}</div>
     <div class="mode" role="tablist"><button class="${V.mode === "pre" ? "on" : ""}" data-mode="pre">${t("modePre")}</button><button class="${V.mode === "deal" ? "on" : ""}" data-mode="deal">${t("modeDeal")}</button><i style="transform:translateX(${V.mode === "pre" ? 0 : 100}%)"></i></div>
     <p class="hint">${V.mode === "pre" ? t("preHint") : t("dealHint")}</p>
@@ -112,11 +112,11 @@ function storeView() {
     <div class="mode"><button class="${V.mode === "pre" ? "on" : ""}" data-mode="pre">${t("menu")}</button><button class="${V.mode === "deal" ? "on" : ""}" data-mode="deal">${t("tonight")} · ${dealCount(s.id)}</button><i style="transform:translateX(${V.mode === "pre" ? 0 : 100}%)"></i></div>
     <div class="grid">${V.mode === "pre"
       ? menu.map((m, i) => `<article class="pcard" style="--i:${i}">${img(m.id)}<div class="pc"><b>${iname(m.id)}</b><span class="price">${yen(m.price)}</span>
-          <button class="add ${inCart("pre:" + m.id) ? "done" : ""}" data-add="pre:${m.id}" aria-label="${t("add")}">${inCart("pre:" + m.id) ? "✓" : "+"}</button></div></article>`).join("")
+          <button class="add ${inCart("pre:" + m.id) ? "done" : ""}" data-add="pre:${m.id}" aria-label="${t("add")}">${inCart("pre:" + m.id) ? ico("check", 18) : ico("plus", 18)}</button></div></article>`).join("")
       : deals.length ? deals.map((l, i) => { const now = l.price * (1 - l.discount / 100);
-          return `<article class="pcard deal" style="--i:${i}"><span class="off">−${l.discount}%</span>${img(l.item)}<div class="pc"><b>${iname(l.item)}</b>
+          return `<article class="pcard deal" style="--i:${i}"><span class="sticker">−${l.discount}%</span>${img(l.item)}<div class="pc"><b>${iname(l.item)}</b>
             <span class="price"><s>${yen(l.price)}</s> ${yen(now)}</span><small>${t("left")(l.qty - l.sold)} · ${t("bb")(l.bestBefore)}</small>
-            <button class="add ${inCart("deal:" + l.id) ? "done" : ""}" data-add="deal:${l.id}" aria-label="${t("add")}">${inCart("deal:" + l.id) ? "✓" : "+"}</button></div></article>`; }).join("")
+            <button class="add ${inCart("deal:" + l.id) ? "done" : ""}" data-add="deal:${l.id}" aria-label="${t("add")}">${inCart("deal:" + l.id) ? ico("check", 18) : ico("plus", 18)}</button></div></article>`; }).join("")
       : `<p class="emptyc">—</p>`}</div>`;
 }
 

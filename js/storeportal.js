@@ -4,12 +4,12 @@ import { ITEMS, WEATHER, FEATURE_NAMES, FACTORS, makeHistory, trainAll, plan } f
 import { CHAINS, STORES, PHOTO, storeById, storeLabel, storeName, menuFor } from "./stores.js";
 import { DB, commit, subscribe, listingsFor, addListing, updateListing, removeListing, suggestDiscount, ordersFor, setStatus,
   notesFor, markRead, walletFor, requestPayout, staffFor, addStaff, impactOf, FEE, signInStore, signUpStore } from "./state.js";
-import { countAll, resetCounts, toast, haptic } from "./ui.js";
+import { countAll, resetCounts, toast, haptic, ico } from "./ui.js";
 
 const T = {
   en: {
     portal: "Store portal", authLead: "Sell what you would throw away, and make the right amount with AI.", signinE: "Sign in with email", register: "Register your store", quick: "Demo sign-in · any 4-digit PIN", anyPin: "Demo: pick a store, then type any 4 digits (e.g. 1234).",
-    email: "Email", pin4: "4-digit PIN", yourName: "Manager name", whichStore: "Your store", create: "Create store account", errWrong: "Email or PIN is wrong.", errExists: "This email is already registered.", errInvalid: "Fill in all fields; PIN must be 4 digits.", welcome: n => `Welcome, ${n}!`, regNote: "Demo: accounts stay in this browser. Real stores would verify ownership with the chain.",
+    email: "Email", pin4: "4-digit PIN", yourName: "Manager name", whichStore: "Your store", create: "Create store account", errWrong: "Email or PIN is wrong.", errExists: "This email is already registered.", errInvalid: "Fill in all fields; PIN must be 4 digits.", welcome: n => `Signed in as ${n}`, regNote: "Demo: accounts stay in this browser. Real stores would verify ownership with the chain.",
     pick: "Choose your store", who: "Who is working?", pin: "Enter PIN", demoPins: "Demo PINs · manager 1111 · staff 2222", wrong: "Wrong PIN",
     manager: "Manager", staff: "Staff", tabs: ["Today", "Listings", "Orders", "Wallet", "More"],
     todayTitle: "Tomorrow's AI plan", day: "Day", temp: "Temperature", event: "Local event",
@@ -36,7 +36,7 @@ const T = {
   },
   jp: {
     portal: "店舗ポータル", authLead: "捨てるはずの食品を売り、AIでちょうどいい量を。", signinE: "メールでログイン", register: "店舗を登録", quick: "デモログイン・4桁PINなら何でもOK", anyPin: "デモ：店舗を選び、4桁の数字を入力（例：1234）。",
-    email: "メールアドレス", pin4: "4桁のPIN", yourName: "店長の名前", whichStore: "店舗", create: "店舗アカウントを作成", errWrong: "メールアドレスまたはPINが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "すべて入力してください（PINは4桁）。", welcome: n => `ようこそ、${n}さん！`, regNote: "デモ：アカウントはこのブラウザ内だけ。実際はチェーン本部で店舗確認を行います。",
+    email: "メールアドレス", pin4: "4桁のPIN", yourName: "店長の名前", whichStore: "店舗", create: "店舗アカウントを作成", errWrong: "メールアドレスまたはPINが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "すべて入力してください（PINは4桁）。", welcome: n => `${n}さんでログインしました`, regNote: "デモ：アカウントはこのブラウザ内だけ。実際はチェーン本部で店舗確認を行います。",
     pick: "店舗を選択", who: "担当者は？", pin: "PINを入力", demoPins: "デモPIN・店長 1111・スタッフ 2222", wrong: "PINが違います",
     manager: "店長", staff: "スタッフ", tabs: ["今日", "出品", "注文", "ウォレット", "その他"],
     todayTitle: "明日のAIプラン", day: "曜日", temp: "気温", event: "地域イベント",
@@ -118,7 +118,7 @@ function todayView() {
   return `<h3 class="ttl">${t("todayTitle")}</h3>
     <div class="ctrls card">
       <div class="seg2 days">${t("days").map((d, i) => `<button class="${P.ctx.wd === i ? "on" : ""}" data-wd="${i}">${d}</button>`).join("")}</div>
-      <div class="seg2">${WEATHER.map(w => `<button class="${P.ctx.weather === w ? "on" : ""}" data-w="${w}">${{ sunny: "☀", cloudy: "☁", rain: "☂" }[w]} ${t("weather")[w]}</button>`).join("")}</div>
+      <div class="seg2">${WEATHER.map(w => `<button class="${P.ctx.weather === w ? "on" : ""}" data-w="${w}">${ico({ sunny: "sun", cloudy: "cloud", rain: "rain" }[w], 14)} ${t("weather")[w]}</button>`).join("")}</div>
       <label class="range"><span>${t("temp")} <b>${P.ctx.temp}°C</b></span><input id="pTemp" type="range" min="0" max="35" value="${P.ctx.temp}"></label>
       <label class="tog"><input type="checkbox" id="pEvent" ${P.ctx.event ? "checked" : ""}><span></span>${t("event")}</label>
     </div>
@@ -135,7 +135,7 @@ function listingsView() {
   const s = S().store, list = listingsFor(s);
   return `<div class="ttlrow"><h3 class="ttl">${t("listingsTitle")}</h3><button class="cbtn primary sm" data-new>+ ${t("newListing")}</button></div>
     ${list.length ? list.map((l, i) => `<article class="lcard" style="--i:${i}">${img(l.item)}<div class="lc"><b>${iname(l.item)}</b>
-      <span class="price"><s>${yen(l.price)}</s> ${yen(l.price * (1 - l.discount / 100))} <em class="off-s">−${l.discount}%</em></span>
+      <span class="price"><s>${yen(l.price)}</s> ${yen(l.price * (1 - l.discount / 100))} <em class="sticker sm">−${l.discount}%</em></span>
       <span class="bar"><i style="width:${(l.sold / l.qty) * 100}%"></i></span><small>${t("sold")(l.sold, l.qty)} · ${t("bb")(l.bestBefore)} · ${t("pickup")(l.from, l.to)}</small>
       <span class="acts"><button class="link" data-edit="${l.id}">${t("edit")}</button><button class="link danger" data-rm="${l.id}">${t("remove")}</button></span></div></article>`).join("")
       : `<p class="emptyc">${t("none")}</p>`}`;
@@ -154,10 +154,10 @@ function formSheet() {
     <div class="frow3"><label class="fld"><span>${t("bestBefore")}</span><input type="time" data-f="bestBefore" value="${f.bestBefore}"></label>
       <label class="fld"><span>${t("from")}</span><input type="time" data-f="from" value="${f.from}"></label><label class="fld"><span>${t("to")}</span><input type="time" data-f="to" value="${f.to}"></label></div>
     <div class="fld"><span>${t("discount")} <b class="dval">${f.discount}%</b></span><input type="range" min="0" max="${max}" step="5" data-f="discount" value="${Math.min(f.discount, max)}">
-      <button class="aichip" data-applyai="${Math.min(sug, max)}">✦ ${t("aiSuggest")(Math.min(sug, max))}<small>${t("aiWhy")(h, f.qty)}</small></button>
+      <button class="aichip" data-applyai="${Math.min(sug, max)}">${t("aiSuggest")(Math.min(sug, max))}<small>${t("aiWhy")(h, f.qty)}</small></button>
       ${!isMgr() ? `<small class="muted">${t("staffMax")}</small>` : ""}</div>
     <small class="lbl">${t("preview")}</small>
-    <div class="pcard deal prev"><span class="off">−${f.discount}%</span>${img(f.item)}<div class="pc"><b>${iname(f.item)}</b><span class="price"><s>${yen(f.price)}</s> ${yen(now)}</span><small>${t("bb")(f.bestBefore)}</small></div></div>
+    <div class="pcard deal prev"><span class="sticker">−${f.discount}%</span>${img(f.item)}<div class="pc"><b>${iname(f.item)}</b><span class="price"><s>${yen(f.price)}</s> ${yen(now)}</span><small>${t("bb")(f.bestBefore)}</small></div></div>
     <button class="cbtn primary" data-publish>${f.id ? t("save") : t("publish")}</button></section>`;
 }
 
@@ -207,7 +207,7 @@ function notesPanel() {
   if (!P.notes) return "";
   const n = notesFor(S().store);
   return `<div class="scrim on" data-closenotes></div><section class="sheet on" role="dialog"><span class="grab"></span><h3>${t("notes")}</h3>
-    ${n.length ? n.slice(0, 20).map(x => `<div class="txrow"><span>🔔 ${t("soldNote")(x.text.replace(/(\d+)× (\w+)/g, (m, q, id) => `${q}× ${iname(id)}`), x.total)}</span><small class="muted">${new Date(x.at).toTimeString().slice(0, 5)}</small></div>`).join("") : `<p class="emptyc">${t("noNotes")}</p>`}</section>`;
+    ${n.length ? n.slice(0, 20).map(x => `<div class="txrow"><span>${t("soldNote")(x.text.replace(/(\d+)× (\w+)/g, (m, q, id) => `${q}× ${iname(id)}`), x.total)}</span><small class="muted">${new Date(x.at).toTimeString().slice(0, 5)}</small></div>`).join("") : `<p class="emptyc">${t("noNotes")}</p>`}</section>`;
 }
 
 function render() {
@@ -233,7 +233,7 @@ function render() {
 }
 function updatePreview() {
   const f = P.sheet, pv = root.querySelector(".prev"); if (!pv) return;
-  pv.querySelector(".off").textContent = `−${f.discount}%`;
+  pv.querySelector(".sticker").textContent = `−${f.discount}%`;
   pv.querySelector(".price").innerHTML = `<s>${yen(f.price)}</s> ${yen(f.price * (1 - f.discount / 100))}`;
 }
 function go(fn) { const run = () => { fn(); resetCounts("p:"); render(); root.querySelector(".scr")?.scrollTo(0, 0); };
@@ -249,7 +249,7 @@ export function mountPortal(el, context) {
   ctx = context; root = el; render();
   lastNotes = S() ? notesFor(S().store).length : 0;
   subscribe(() => {
-    if (S()) { const n = notesFor(S().store); if (n.length > lastNotes) { const x = n[0]; toast("🔔 " + t("soldNote")(x.text.replace(/(\d+)× (\w+)/g, (m, q, id) => `${q}× ${iname(id)}`), x.total), "sold"); haptic(15); } lastNotes = n.length; }
+    if (S()) { const n = notesFor(S().store); if (n.length > lastNotes) { const x = n[0]; toast(t("soldNote")(x.text.replace(/(\d+)× (\w+)/g, (m, q, id) => `${q}× ${iname(id)}`), x.total), "sold"); haptic(15); } lastNotes = n.length; }
     if (!P.sheet) render();
   });
   root.addEventListener("click", e => {
