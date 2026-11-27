@@ -2,7 +2,7 @@
 import { mountCustomer, rerenderCustomer } from "./customer.js";
 import { mountPortal, rerenderPortal } from "./storeportal.js";
 import { mountAdmin, rerenderAdmin } from "./admin.js";
-import { DB, subscribe } from "./state.js";
+import { DB, subscribe, commit, placeOrder, setStatus, listingsFor } from "./state.js";
 
 const T = {
   en: {
@@ -69,7 +69,19 @@ document.addEventListener("click", e => {
   if (e.target.closest("[data-gclose]")) document.getElementById("guide").classList.remove("on");
 });
 subscribe(() => renderGuide());
-const context = { lang: () => lang };
+const Q = new URLSearchParams(location.search);
+if (Q.has("demo")) {
+  DB.user ||= { name: "Demo", email: "demo@gochi.demo" };
+  DB.session ||= { store: "s1", staff: "m", role: "manager", name: "Tanaka" };
+  if (!DB.orders.length) {
+    const l = listingsFor("s1")[0];
+    if (l) { const o = placeOrder({ store: "s1", kind: "deal", lines: [{ item: l.item, qty: 1, price: Math.round(l.price * (1 - l.discount / 100)), full: l.price, discount: l.discount, listing: l.id }], day: "today", slot: "pm" }); setStatus(o.id, 3); }
+  }
+  if (Q.has("hq")) DB.admin = true;
+  commit({});
+  try { localStorage.setItem("gc_guideSeen", "1"); } catch {}
+}
+const context = { lang: () => lang, q: Q };
 mountCustomer(document.getElementById("custApp"), context);
 mountPortal(document.getElementById("storeApp"), context);
 mountAdmin(document.getElementById("adminApp"), context);

@@ -137,7 +137,7 @@ function todayView() {
       return `<article class="prow" style="--i:${i}">${img(r.id)}<div class="pr"><b>${iname(r.id)}${e.edited ? ` <span class="tag">${t("edited")}</span>` : ""}</b>
       <small>${t("fc")} <b class="ai">${r.forecast.toFixed(0)}</b> <span class="rng">${t("range")(Math.max(0, Math.round(r.forecast - r.sd)), Math.round(r.forecast + r.sd))}</span> · ${t("usual")(r.habit)}${r.pre ? ` · <span class="tag">${t("preApp")(r.pre)}</span>` : ""}</small>
       <span class="bar"><i style="width:${(e.make / max) * 100}%"></i><i class="u" style="width:${(r.habit / max) * 100}%"></i></span>
-      <details class="why"><summary>${t("howMade")}</summary><ol>
+      <details class="why" ${P.openWhy && i === 0 ? "open" : ""}><summary>${t("howMade")}</summary><ol>
         <li><span class="kind rule">${t("kRule")}</span> ${t("wUsual")(t("days")[P.ctx.wd], Math.round(r.lastWeek), Math.round(r.lastWeek * 1.15), r.pre, r.habit)}</li>
         <li><span class="kind ml">${t("kML")}</span> ${t("wWalk")} ${r.contrib.map(([n, v]) => `${n === "temperature" ? t("temp") + " " + P.ctx.temp + "°C" : t("wn")[n]} ${v >= 0 && n !== "base" ? "+" : ""}${v.toFixed(1)}`).join(" · ")} = <b>${r.walk.toFixed(1)}</b> ${t("wSd")(r.sd.toFixed(1))}</li>
         <li><span class="kind rule">${t("kRule")}</span> ${t("wMake")(r.walk.toFixed(1), r.pre, r.buffer.toFixed(1), r.aiMake)}</li>
@@ -271,7 +271,11 @@ function listFromPlan(rows) {
 }
 
 export function mountPortal(el, context) {
-  ctx = context; root = el; render();
+  ctx = context; root = el;
+  if (context.q?.has("s")) P.tab = +context.q.get("s") || 0;
+  P.openWhy = context.q?.has("why");
+  render();
+  if (P.openWhy) setTimeout(() => { const sc = root.querySelector(".scr"), pr = root.querySelector(".prow"); if (sc && pr) sc.scrollTop = pr.offsetTop - 12; }, 300);
   lastNotes = S() ? notesFor(S().store).length : 0;
   subscribe(() => {
     if (S()) { const n = notesFor(S().store); if (n.length > lastNotes) { const x = n[0]; toast(t("soldNote")(x.text.replace(/(\d+)× (\w+)/g, (m, q, id) => `${q}× ${iname(id)}`), x.total), "sold"); haptic(15); } lastNotes = n.length; }

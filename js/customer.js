@@ -226,7 +226,11 @@ function wireSheetDrag() {
 }
 
 export function mountCustomer(el, context) {
-  ctx = context; root = el; render();
+  ctx = context; root = el;
+  const cv = context.q?.get("c");
+  if (cv === "profile" || cv === "orders") V.screen = cv;
+  else if (cv) { const [st, mode] = cv.split("-"); V.store = st; V.screen = "store"; V.mode = mode === "deal" ? "deal" : "pre"; }
+  render();
   subscribe(() => {
     for (const o of myOrders()) if (o.status === 2 && !seenReady.has(o.id)) { seenReady.add(o.id); if (o.at > Date.now() - 36e5) toast(t("readyToast")(storeName(storeById(o.store), L())), "ok"); }
     if (!V.sheet && !V.done) render();
