@@ -12,7 +12,7 @@ const T = {
     email: "Email", pin4: "4-digit PIN", yourName: "Manager name", whichStore: "Your store", create: "Create store account", errWrong: "Email or PIN is wrong.", errExists: "This email is already registered.", errInvalid: "Fill in all fields; PIN must be 4 digits.", welcome: n => `Signed in as ${n}`, regNote: "Demo: accounts stay in this browser. Real stores would verify ownership with the chain.",
     pick: "Choose your store", who: "Who is working?", pin: "Enter PIN", demoPins: "Demo PINs · manager 1111 · staff 2222", wrong: "Wrong PIN",
     manager: "Manager", staff: "Staff", tabs: ["Today", "Listings", "Orders", "Wallet", "More"],
-    todayTitle: "Tomorrow's AI plan", day: "Day", temp: "Temperature", event: "Local event",
+    todayTitle: "Tomorrow's AI plan", editHint: "The AI suggests; you decide. Change how many to make, how many to list and the discount, then list.", makeL: "Make", listL: "List", discL: "Discount", aiWas: v => `AI: ${v}`, edited: "edited", resetAI: "Reset to AI", nothing: "Nothing to list", day: "Day", temp: "Temperature", event: "Local event",
     weather: { sunny: "Sunny", cloudy: "Cloudy", rain: "Rain" }, days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     fc: "AI forecast", make: n => `Make ${n}`, usual: n => `usual ${n}`, preApp: n => `${n} pre-ordered in app`, leftover: n => `~${n} may be left`,
     listOne: (n, d) => `List ${n} at −${d}%`, listAll: "List all expected leftovers", listed: n => `${n} items listed in the customer app`,
@@ -39,7 +39,7 @@ const T = {
     email: "メールアドレス", pin4: "4桁のPIN", yourName: "店長の名前", whichStore: "店舗", create: "店舗アカウントを作成", errWrong: "メールアドレスまたはPINが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "すべて入力してください（PINは4桁）。", welcome: n => `${n}さんでログインしました`, regNote: "デモ：アカウントはこのブラウザ内だけ。実際はチェーン本部で店舗確認を行います。",
     pick: "店舗を選択", who: "担当者は？", pin: "PINを入力", demoPins: "デモPIN・店長 1111・スタッフ 2222", wrong: "PINが違います",
     manager: "店長", staff: "スタッフ", tabs: ["今日", "出品", "注文", "ウォレット", "その他"],
-    todayTitle: "明日のAIプラン", day: "曜日", temp: "気温", event: "地域イベント",
+    todayTitle: "明日のAIプラン", editHint: "AIが提案し、お店が決めます。製造数・出品数・値引き率を変更して出品できます。", makeL: "製造", listL: "出品", discL: "値引き", aiWas: v => `AI：${v}`, edited: "変更済み", resetAI: "AIの値に戻す", nothing: "出品なし", day: "曜日", temp: "気温", event: "地域イベント",
     weather: { sunny: "晴れ", cloudy: "くもり", rain: "雨" }, days: ["日", "月", "火", "水", "木", "金", "土"],
     fc: "AI予測", make: n => `${n}個つくる`, usual: n => `いつも ${n}個`, preApp: n => `アプリ予約 ${n}個`, leftover: n => `約${n}個 残る見込み`,
     listOne: (n, d) => `${n}個を−${d}%で出品`, listAll: "売れ残り予定をすべて出品", listed: n => `${n}個を利用者アプリに出品しました`,
@@ -64,7 +64,7 @@ const T = {
 };
 
 const models = trainAll(makeHistory());
-const P = { tab: 0, step: "home", store: null, staff: null, pin: "", ctx: { wd: 5, weather: "rain", temp: 14, event: 0 }, ord: 0, sheet: null, notes: false };
+const P = { adj: {}, tab: 0, step: "home", store: null, staff: null, pin: "", ctx: { wd: 5, weather: "rain", temp: 14, event: 0 }, ord: 0, sheet: null, notes: false };
 let ctx, root, lastNotes = 0;
 const L = () => ctx.lang();
 const t = k => T[L()][k];
@@ -110,6 +110,14 @@ function loginView() {
 }
 
 // ---------- tabs ----------
+function eff(r) {
+  const a = P.adj[r.id] || {}, maxD = isMgr() ? 60 : 30;
+  const make = a.make ?? r.aiMake;
+  const left = Math.max(0, make - Math.round(r.forecast));
+  const n = Math.min(a.n ?? left, make);
+  const d = Math.min(a.d ?? r.discount, maxD);
+  return { make, left, n, d, edited: a.make !== undefined || a.n !== undefined || a.d !== undefined };
+}
 function todayView() {
   const s = S().store, app = preFromApp(s);
   const c = { ...P.ctx, preorders: app };
@@ -124,11 +132,18 @@ function todayView() {
     </div>
     <div class="kpi2"><div><small>${t("avoided")}</small><b data-count="${avoided}">0</b><small>${t("vsUsual")}</small></div>
       <button class="cbtn primary" data-listall>${t("listAll")}</button></div>
-    <div class="plist">${rows.map((r, i) => `<article class="prow" style="--i:${i}">${img(r.id)}<div class="pr"><b>${iname(r.id)}</b>
+    <p class="hint">${t("editHint")}</p>
+    <div class="plist">${rows.map((r, i) => { const e = eff(r), max = Math.max(r.habit, e.make, 1);
+      return `<article class="prow" style="--i:${i}">${img(r.id)}<div class="pr"><b>${iname(r.id)}${e.edited ? ` <span class="tag">${t("edited")}</span>` : ""}</b>
       <small>${t("fc")} <b class="ai">${r.forecast.toFixed(0)}</b> · ${t("usual")(r.habit)}${r.pre ? ` · <span class="tag">${t("preApp")(r.pre)}</span>` : ""}</small>
-      <span class="bar"><i style="width:${Math.min(100, r.aiMake / Math.max(r.habit, r.aiMake) * 100)}%"></i><i class="u" style="width:${Math.min(100, r.habit / Math.max(r.habit, r.aiMake) * 100)}%"></i></span>
-      <span class="mk">${t("make")(r.aiMake)}${r.leftoverAI ? ` · <em>${t("leftover")(r.leftoverAI)}</em>` : ""}</span></div>
-      ${r.leftoverAI ? `<button class="mini-btn" data-listone="${r.id}" data-n="${r.leftoverAI}" data-d="${r.discount}">${t("listOne")(r.leftoverAI, r.discount)}</button>` : ""}</article>`).join("")}</div>`;
+      <span class="bar"><i style="width:${(e.make / max) * 100}%"></i><i class="u" style="width:${(r.habit / max) * 100}%"></i></span></div>
+      <div class="adj">
+        <div class="adjrow"><span>${t("makeL")}</span><span class="stepper sm"><button data-adj="${r.id}|make|-1" aria-label="−">−</button><b>${e.make}</b><button data-adj="${r.id}|make|1" aria-label="+">+</button></span><small>${t("aiWas")(r.aiMake)}</small></div>
+        <div class="adjrow"><span>${t("listL")}</span><span class="stepper sm"><button data-adj="${r.id}|n|-1" aria-label="−">−</button><b>${e.n}</b><button data-adj="${r.id}|n|1" aria-label="+">+</button></span><small>${t("aiWas")(e.left)}</small></div>
+        <div class="adjrow"><span>${t("discL")}</span><span class="stepper sm"><button data-adj="${r.id}|d|-5" aria-label="−">−</button><b>${e.d}%</b><button data-adj="${r.id}|d|5" aria-label="+">+</button></span><small>${t("aiWas")(r.discount + "%")}</small></div>
+        <div class="adjact">${e.n ? `<button class="mini-btn" data-listone="${r.id}" data-n="${e.n}" data-d="${e.d}">${t("listOne")(e.n, e.d)}</button>` : `<span class="muted sm">${t("nothing")}</span>`}
+          ${e.edited ? `<button class="link" data-adjreset="${r.id}">${t("resetAI")}</button>` : ""}</div>
+      </div></article>`; }).join("")}</div>`;
 }
 
 function listingsView() {
@@ -274,7 +289,14 @@ export function mountPortal(el, context) {
     if (d.ptab) { go(() => { P.tab = +d.ptab; }); return; }
     if (d.wd) { P.ctx.wd = +d.wd; render(); return; }
     if (d.w) { P.ctx.weather = d.w; render(); return; }
-    if (d.listall !== undefined) { const rows = plan(models, { ...P.ctx, preorders: preFromApp(S().store) }).filter(r => r.leftoverAI > 0).map(r => ({ id: r.id, n: r.leftoverAI, discount: r.discount })); listFromPlan(rows); return; }
+    if (d.listall !== undefined) { const rows = plan(models, { ...P.ctx, preorders: preFromApp(S().store) }).map(r => ({ id: r.id, n: eff(r).n, discount: eff(r).d })).filter(r => r.n > 0); listFromPlan(rows); return; }
+    if (d.adj) { const [id, f, step] = d.adj.split("|"); const r = plan(models, { ...P.ctx, preorders: preFromApp(S().store) }).find(x => x.id === id); const e = eff(r);
+      const a = P.adj[id] || (P.adj[id] = {}); const maxD = isMgr() ? 60 : 30;
+      if (f === "make") a.make = Math.max(0, Math.min(200, e.make + +step));
+      if (f === "n") a.n = Math.max(0, Math.min(f === "n" ? (a.make ?? r.aiMake) : 50, e.n + +step));
+      if (f === "d") { const v = e.d + +step; if (v > maxD) toast(t("staffMax"), "err"); a.d = Math.max(0, Math.min(maxD, v)); }
+      haptic(5); render(); return; }
+    if (d.adjreset) { delete P.adj[d.adjreset]; render(); return; }
     if (d.listone) { listFromPlan([{ id: d.listone, n: +d.n, discount: +d.d }]); return; }
     if (d.new !== undefined) { const m = menuFor(storeById(S().store))[0]; P.sheet = { item: m.id, price: m.price, qty: 3, bestBefore: "03:00", from: "21:00", to: "00:30", discount: 30 }; render(); return; }
     if (d.edit) { const l = DB.listings.find(x => x.id === d.edit); P.sheet = { ...l }; render(); return; }

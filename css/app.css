@@ -1,7 +1,7 @@
 /* Gochi Cycle design system: mobile first */
 :root{
-  --navy:#0D2B36;--navy2:#164756;--teal:#2E8C83;--teal2:#25766f;--mint:#E4F0EE;--soft:#9CCBC4;--coral:#E07A5F;--coral-d:#A54A33;
-  --bg:#F6F5F1;--card:#fff;--ink:#13242B;--grey:#66777C;--line:#E1E6E4;--ok:#2E8C83;--err:#C0533A;
+  --navy:#1F5135;--navy2:#173F29;--teal:#2C7A4B;--teal2:#21603A;--mint:#EAF4EE;--soft:#A9D3B8;--coral:#2563C9;--coral-d:#1D4E9E;
+  --bg:#FFFFFF;--card:#fff;--ink:#111814;--grey:#5F6B66;--line:#E3E8E5;--ok:#2C7A4B;--err:#C0392B;
   --r:16px;--ease:cubic-bezier(.23,1,.32,1);--ease-in:cubic-bezier(.5,0,.75,0);--drawer:cubic-bezier(.32,.72,0,1);
   --font:"Segoe UI Variable Text","Segoe UI","Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,-apple-system,sans-serif;
   --sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom)
@@ -435,3 +435,24 @@ input[type=range]{width:100%;accent-color:var(--teal);height:28px}
 }
 
 .pcard .pc small{padding-right:40px}
+
+/* brand: forest green (Gochi Cycle), with blue, black and white */
+.top{background:var(--navy)}
+.device{border-color:var(--navy)}
+.mode,.mode.auth{background:#F1F4F2}
+.map{background-color:#FAFCFB}
+.phead{background:#fff}
+.sticker{background:var(--coral);outline-color:var(--coral)}
+.toast{background:#111814}.toast.ok{background:var(--teal2)}.toast.err{background:var(--err)}
+.kgrid.hero .kc:nth-child(2){background:#111814;border-color:#111814}
+.scen div{background:#F5F8F6}
+/* editable AI suggestions */
+.prow{grid-template-columns:54px 1fr;align-items:start}
+.adj{grid-column:1/-1;display:grid;gap:8px;padding-top:8px;border-top:1px solid var(--line)}
+.adjrow{display:grid;grid-template-columns:72px auto 1fr;align-items:center;gap:12px;font-size:13px}
+.adjrow small{color:var(--grey);font-size:12px;text-align:right}
+.stepper.sm{padding:2px;gap:8px;justify-content:flex-start;width:max-content}
+.stepper.sm button{width:32px;height:32px;border-radius:8px;font-size:16px}
+.stepper.sm b{min-width:40px;text-align:center;font-variant-numeric:tabular-nums}
+.adjact{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.adjact .mini-btn{flex:1;background:var(--teal);color:#fff}
