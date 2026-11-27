@@ -4,7 +4,7 @@ import { ITEMS, WEATHER, FEATURE_NAMES, FACTORS, makeHistory, trainAll, plan } f
 import { CHAINS, STORES, PHOTO, storeById, storeLabel, storeName, menuFor } from "./stores.js";
 import { DB, commit, subscribe, listingsFor, addListing, updateListing, removeListing, suggestDiscount, ordersFor, setStatus,
   notesFor, markRead, walletFor, requestPayout, staffFor, addStaff, impactOf, FEE, signInStore, signUpStore, methodHTML } from "./state.js";
-import { countAll, resetCounts, toast, haptic, ico } from "./ui.js";
+import { countAll, resetCounts, toast, haptic, ico, esc } from "./ui.js";
 
 const T = {
   en: {
@@ -20,14 +20,14 @@ const T = {
     listingsTitle: "Live listings", newListing: "New listing", none: "No live listings. Add one, or list leftovers from Today.",
     sold: (s, q) => `${s}/${q} sold`, bb: x => `best before ${x}`, pickup: (a, b) => `pickup ${a}–${b}`, edit: "Edit", remove: "Remove",
     product: "Product", price: "Regular price", qty: "Quantity", bestBefore: "Best before", from: "Pickup from", to: "until", discount: "Discount",
-    aiSuggest: d => `AI suggests ${d}%`, aiWhy: (h, q) => `${h} h until best before · ${q} items`, staffMax: "Staff can give up to 30%. Ask a manager for more.",
+    aiSuggest: d => `Suggested ${d}% (rule)`, ruleWas: v => `Rule: ${v}`, safetyLabel: "I checked the date, label and allergen information", errSafety: "Please confirm the safety check before listing.", errWindow: "Pickup must end before the best-before time.", safetyAsk: "Staff check: these items are within date, labelled, and allergen information is on the label. List them?", today: "Today", tomorrow: "Tomorrow", aiWhy: (h, q) => `${h} h until best before · ${q} items`, staffMax: "Staff can give up to 30%. Ask a manager for more.",
     preview: "Customer sees", publish: "Publish", save: "Save changes",
     ordersTitle: "Orders", oNew: "New", oReady: "To hand over", oDone: "Done", noOrd: "Nothing here yet.",
     pre: "Pre-order", deal: "Leftover deal", accept: "Accept", ready: "Mark ready", picked: "Picked up", codeAsk: c => `Ask the customer for code ${c}`,
     walletTitle: "Wallet", balance: "Available balance", gross: "Sales", fee: f => `Gochi fee (${f}%)`, net: "Net income", payout: "Request payout",
     payoutDone: a => `Payout of ${a} requested (demo)`, noPay: "Only a manager can request payouts.", tx: "Transactions", payouts: "Payouts", txNone: "Sales appear here when customers pick up.",
     moreTitle: "Reports", howCount: "How impact is counted (after pickup only)", rescued: "Food rescued", income: "Income from leftovers", co2: "CO₂e avoided", orders: "Orders",
-    week: "Last 7 days · income (¥)", weekNote: "Earlier days are demo data; today is live.", aiTitle: "How the AI works",
+    week: "Last 7 days · income (¥) · days 1–6 are demo data", weekNote: "Earlier days are demo data; today is live.", aiTitle: "How the AI works",
     aiLead: "One machine-learning model per item (ridge regression), trained on 120 days of sales. Tested on 14 days it never saw.",
     acc: "Mean absolute error (MAE, items per day) on 14 held-out simulated days: AI · usual method · improvement = 1 − AI ÷ usual", learned: "What the model learned (Makunouchi bento)",
     staffTitle: "Staff", addStaff: "Add staff", name: "Name", role: "Role", logout: "Log out", reset: "Reset demo data",
@@ -47,14 +47,14 @@ const T = {
     listingsTitle: "出品中", newListing: "新規出品", none: "出品中の商品はありません。追加するか「今日」から出品してください。",
     sold: (s, q) => `${s}/${q} 販売`, bb: x => `消費期限 ${x}`, pickup: (a, b) => `受取 ${a}〜${b}`, edit: "編集", remove: "取り下げ",
     product: "商品", price: "通常価格", qty: "数量", bestBefore: "消費期限", from: "受取開始", to: "終了", discount: "値引き",
-    aiSuggest: d => `AIのおすすめ ${d}%`, aiWhy: (h, q) => `期限まで${h}時間・${q}個`, staffMax: "スタッフは30%まで。それ以上は店長へ。",
+    aiSuggest: d => `目安 ${d}%（ルール）`, ruleWas: v => `ルール：${v}`, safetyLabel: "消費期限・ラベル・アレルギー表示を確認しました", errSafety: "出品前に安全確認にチェックしてください。", errWindow: "受取終了は消費期限より前にしてください。", safetyAsk: "スタッフ確認：期限内で、ラベルとアレルギー表示があることを確認しましたか？出品しますか？", today: "今日", tomorrow: "明日", aiWhy: (h, q) => `期限まで${h}時間・${q}個`, staffMax: "スタッフは30%まで。それ以上は店長へ。",
     preview: "利用者の表示", publish: "出品する", save: "保存",
     ordersTitle: "注文", oNew: "新規", oReady: "受け渡し待ち", oDone: "完了", noOrd: "まだありません。",
     pre: "予約注文", deal: "値引き品", accept: "受付", ready: "準備完了", picked: "受け渡し完了", codeAsk: c => `お客様のコード ${c} を確認`,
     walletTitle: "ウォレット", balance: "出金可能残高", gross: "売上", fee: f => `Gochi手数料（${f}%）`, net: "純収入", payout: "出金をリクエスト",
     payoutDone: a => `${a}の出金をリクエストしました（デモ）`, noPay: "出金は店長のみ可能です。", tx: "取引", payouts: "出金履歴", txNone: "受け渡しが完了すると売上がここに表示されます。",
     moreTitle: "レポート", howCount: "インパクトの数え方（受け取り後のみ）", rescued: "救った食品", income: "値引き品の売上", co2: "CO₂e削減", orders: "注文",
-    week: "直近7日・売上（円）", weekNote: "過去の日はデモデータ、今日は実際の値です。", aiTitle: "AIのしくみ",
+    week: "直近7日・売上（円）・1〜6日目はデモデータ", weekNote: "過去の日はデモデータ、今日は実際の値です。", aiTitle: "AIのしくみ",
     aiLead: "商品ごとの機械学習モデル（リッジ回帰）を120日分の販売データで学習。学習に使っていない14日間でテスト。",
     acc: "平均絶対誤差（MAE、個/日）・学習に使っていない模擬データ14日間：AI・いつもの方法・改善率 = 1 − AI ÷ いつも", learned: "モデルが学んだこと（幕の内弁当）",
     staffTitle: "スタッフ", addStaff: "スタッフを追加", name: "名前", role: "役割", logout: "ログアウト", reset: "デモデータをリセット",
@@ -101,9 +101,9 @@ function loginView() {
     <div class="storelist">${STORES.map((s, i) => `<button class="srow" style="--i:${i}" data-pickstore="${s.id}"><span class="chain" style="--c:${CHAINS[s.chain].color}">${CHAINS[s.chain].short}</span><span class="sinfo"><b>${storeLabel(s, L())}</b></span><span class="go">›</span></button>`).join("")}</div></div>`;
   const s = storeById(P.store);
   if (P.step === "who") return `<div class="plogin"><button class="back" data-pstep="store">‹</button><h2>${storeLabel(s, L())}</h2><p class="muted">${t("who")}</p>
-    <div class="who">${staffFor(s.id).map(p => `<button class="person" data-pickstaff="${p.id}"><span class="avatar">${p.name[0]}</span><b>${p.name}</b><small>${t(p.role)}</small></button>`).join("")}</div></div>`;
+    <div class="who">${staffFor(s.id).map(p => `<button class="person" data-pickstaff="${p.id}"><span class="avatar">${esc(p.name[0])}</span><b>${esc(p.name)}</b><small>${t(p.role)}</small></button>`).join("")}</div></div>`;
   const p = staffFor(s.id).find(x => x.id === P.staff);
-  return `<div class="plogin"><button class="back" data-pstep="store">‹</button><span class="avatar big">${p.name[0]}</span><h2>${p.name}</h2><p class="muted">${t("pin")}</p>
+  return `<div class="plogin"><button class="back" data-pstep="store">‹</button><span class="avatar big">${esc(p.name[0])}</span><h2>${esc(p.name)}</h2><p class="muted">${t("pin")}</p>
     <div class="pindots ${P.pinErr ? "shake" : ""}">${[0, 1, 2, 3].map(i => `<i class="${i < P.pin.length ? "on" : ""}"></i>`).join("")}</div>
     <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(k => k === "" ? "<span></span>" : `<button data-key="${k}">${k}</button>`).join("")}</div>
     <p class="fine">${t("anyPin")}</p></div>`;
@@ -147,7 +147,7 @@ function todayView() {
       <div class="adj">
         <div class="adjrow"><span>${t("makeL")}</span><span class="stepper sm"><button data-adj="${r.id}|make|-1" aria-label="−">−</button><b>${e.make}</b><button data-adj="${r.id}|make|1" aria-label="+">+</button></span><small>${t("aiWas")(r.aiMake)}</small></div>
         <div class="adjrow"><span>${t("listL")}</span><span class="stepper sm"><button data-adj="${r.id}|n|-1" aria-label="−">−</button><b>${e.n}</b><button data-adj="${r.id}|n|1" aria-label="+">+</button></span><small>${t("aiWas")(e.left)}</small></div>
-        <div class="adjrow"><span>${t("discL")}</span><span class="stepper sm"><button data-adj="${r.id}|d|-5" aria-label="−">−</button><b>${e.d}%</b><button data-adj="${r.id}|d|5" aria-label="+">+</button></span><small>${t("aiWas")(r.discount + "%")}</small></div>
+        <div class="adjrow"><span>${t("discL")}</span><span class="stepper sm"><button data-adj="${r.id}|d|-5" aria-label="−">−</button><b>${e.d}%</b><button data-adj="${r.id}|d|5" aria-label="+">+</button></span><small>${t("ruleWas")(r.discount + "%")}</small></div>
         <div class="adjact">${e.n ? `<button class="mini-btn" data-listone="${r.id}" data-n="${e.n}" data-d="${e.d}">${t("listOne")(e.n, e.d)}</button>` : `<span class="muted sm">${t("nothing")}</span>`}
           ${e.edited ? `<button class="link" data-adjreset="${r.id}">${t("resetAI")}</button>` : ""}</div>
       </div></article>`; }).join("")}</div>`;
@@ -158,7 +158,7 @@ function listingsView() {
   return `<div class="ttlrow"><h3 class="ttl">${t("listingsTitle")}</h3><button class="cbtn primary sm" data-new>+ ${t("newListing")}</button></div>
     ${list.length ? list.map((l, i) => `<article class="lcard" style="--i:${i}">${img(l.item)}<div class="lc"><b>${iname(l.item)}</b>
       <span class="price"><s>${yen(l.price)}</s> ${yen(l.price * (1 - l.discount / 100))} <em class="sticker sm">−${l.discount}%</em></span>
-      <span class="bar"><i style="width:${(l.sold / l.qty) * 100}%"></i></span><small>${t("sold")(l.sold, l.qty)} · ${t("bb")(l.bestBefore)} · ${t("pickup")(l.from, l.to)}</small>
+      <span class="bar"><i style="width:${(l.sold / l.qty) * 100}%"></i></span><small>${t("sold")(l.sold, l.qty)} · ${t("bb")(l.bestBefore)} · ${t("pickup")(l.from, l.to)}${l.checked ? ` · ${ico("check", 12)} ${esc(l.checkedBy || "")}` : ""}</small>
       <span class="acts"><button class="link" data-edit="${l.id}">${t("edit")}</button><button class="link danger" data-rm="${l.id}">${t("remove")}</button></span></div></article>`).join("")
       : `<p class="emptyc">${t("none")}</p>`}`;
 }
@@ -178,6 +178,7 @@ function formSheet() {
     <div class="fld"><span>${t("discount")} <b class="dval">${f.discount}%</b></span><input type="range" min="0" max="${max}" step="5" data-f="discount" value="${Math.min(f.discount, max)}">
       <button class="aichip" data-applyai="${Math.min(sug, max)}">${t("aiSuggest")(Math.min(sug, max))}<small>${t("aiWhy")(h, f.qty)}</small></button>
       ${!isMgr() ? `<small class="muted">${t("staffMax")}</small>` : ""}</div>
+    <label class="tog safe"><input type="checkbox" data-fchk ${f.checked ? "checked" : ""}><span></span>${t("safetyLabel")}</label>
     <small class="lbl">${t("preview")}</small>
     <div class="pcard deal prev"><span class="sticker">−${f.discount}%</span>${img(f.item)}<div class="pc"><b>${iname(f.item)}</b><span class="price"><s>${yen(f.price)}</s> ${yen(now)}</span><small>${t("bb")(f.bestBefore)}</small></div></div>
     <button class="cbtn primary" data-publish>${f.id ? t("save") : t("publish")}</button></section>`;
@@ -190,7 +191,7 @@ function ordersView() {
   return `<h3 class="ttl">${t("ordersTitle")}</h3>
     <div class="seg3">${[t("oNew"), t("oReady"), t("oDone")].map((x, i) => `<button class="${P.ord === i ? "on" : ""}" data-ord="${i}">${x}<em>${groups[i].length}</em></button>`).join("")}</div>
     ${g.length ? g.map((o, i) => `<article class="ocard st" style="--i:${i}"><div class="oimg">${img(o.lines[0].item)}</div><div class="oinfo">
-      <b>#${o.code} · ${o.user}</b><small><span class="tag ${o.kind}">${t(o.kind)}</span> ${o.kind === "pre" ? (o.day === "today" ? "Today" : "Tomorrow") + " " + ({ am: "07:30", noon: "12:00", pm: "18:00" }[o.slot]) : "21:00–00:30"}</small>
+      <b>#${o.code} · ${esc(o.user)}</b><small><span class="tag ${o.kind}">${t(o.kind)}</span> ${o.kind === "pre" ? (o.day === "today" ? t("today") : t("tomorrow")) + " " + ({ am: "07:30", noon: "12:00", pm: "18:00" }[o.slot]) : "21:00–00:30"}</small>
       <small>${o.lines.map(l => `${iname(l.item)} ×${l.qty}`).join(", ")} · ${yen(o.total)}</small>
       ${o.status === 2 ? `<small class="muted">${t("codeAsk")(o.code)}</small>` : ""}</div>
       ${o.status === 0 ? `<button class="mini-btn" data-set="${o.id}" data-s="1">${t("accept")}</button>` : o.status === 1 ? `<button class="mini-btn" data-set="${o.id}" data-s="2">${t("ready")}</button>` : o.status === 2 ? `<button class="mini-btn ok" data-set="${o.id}" data-s="3">${t("picked")}</button>` : `<span class="okmark">✓</span>`}</article>`).join("")
@@ -220,7 +221,7 @@ function moreView() {
       ${ITEMS.map(it => { const mm = models[it.id], b = (1 - mm.maeAI / mm.maeHabit) * 100; return `<div class="accrow"><span>${iname(it.id)}</span><span class="ai">${mm.maeAI.toFixed(1)}</span><span class="muted">${mm.maeHabit.toFixed(1)}</span><span class="tag ok">−${b.toFixed(0)}%</span></div>`; }).join("")}
       <small class="lbl">${t("learned")}</small>${m.w.map((v, i) => i === 0 ? "" : `<div class="wrow"><span>${t("wn")[FEATURE_NAMES[i]]}</span><i class="wbar ${v < 0 ? "neg" : ""}" style="width:${(Math.abs(v) / top) * 100}%"></i><span>${v > 0 ? "+" : ""}${v.toFixed(1)}</span></div>`).join("")}
       <small class="muted">${t("demoData")}</small></div>
-    <div class="card"><b>${t("staffTitle")}</b>${staffFor(s).map(p => `<div class="txrow"><span><span class="avatar xs">${p.name[0]}</span> ${p.name}</span><span class="tag">${t(p.role)}</span></div>`).join("")}
+    <div class="card"><b>${t("staffTitle")}</b>${staffFor(s).map(p => `<div class="txrow"><span><span class="avatar xs">${esc(p.name[0])}</span> ${esc(p.name)}</span><span class="tag">${t(p.role)}</span></div>`).join("")}
       ${isMgr() ? `<div class="frow"><input id="nsName" placeholder="${t("name")}" maxlength="16"><select id="nsRole"><option value="staff">${t("staff")}</option><option value="manager">${t("manager")}</option></select><button class="mini-btn" data-addstaff>${t("addStaff")}</button></div>` : ""}</div>
     <button class="cbtn ghost" data-plogout>${t("logout")}</button><button class="cbtn ghost" data-reset>${t("reset")}</button>`;
 }
@@ -240,7 +241,7 @@ function render() {
   const newOrd = ordersFor(s.id).filter(o => o.status <= 1).length;
   const icons = ["M4 19h16M7 16V9m5 7V5m5 11v-4", "M4 7h16M4 12h16M4 17h10", "M7 3h10l3 4v14H4V7zM4 7h16", "M3 7h18v12H3zM3 11h18M16 15h2", "M5 12h.01M12 12h.01M19 12h.01"];
   root.innerHTML = `<div class="app portal">
-    <header class="phead"><div><small>${t("portal")} · ${t(S().role)} ${S().name}</small><b>${storeLabel(s, L())}</b></div>
+    <header class="phead"><div><small>${t("portal")} · ${t(S().role)} ${esc(S().name)}</small><b>${storeLabel(s, L())}</b></div>
       <button class="bell" data-notes aria-label="${t("notes")}"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg>${unread ? `<em>${unread}</em>` : ""}</button></header>
     <div class="scr" style="view-transition-name:pscr">${body}</div>
     <nav class="bnav">${t("tabs").map((x, i) => `<button class="${P.tab === i ? "on" : ""}" data-ptab="${i}"><svg viewBox="0 0 24 24"><path d="${icons[i]}"/></svg>${x}${i === 2 && newOrd ? `<em class="dot"></em>` : ""}</button>`).join("")}</nav>
@@ -248,6 +249,7 @@ function render() {
   countAll(root, "p:" + P.tab + ":");
   const tmp = root.querySelector("#pTemp"); if (tmp) tmp.oninput = e => { P.ctx.temp = +e.target.value; render(); };
   const ev = root.querySelector("#pEvent"); if (ev) ev.onchange = e => { P.ctx.event = e.target.checked ? 1 : 0; render(); };
+  const fc = root.querySelector("[data-fchk]"); if (fc) fc.onchange = e => { P.sheet.checked = e.target.checked; };
   root.querySelectorAll("[data-f]").forEach(inp => inp.oninput = e => {
     const k = inp.dataset.f; P.sheet[k] = inp.type === "number" || inp.type === "range" ? +e.target.value : e.target.value;
     if (k === "discount") { const v = root.querySelector(".dval"); if (v) v.textContent = P.sheet.discount + "%"; updatePreview(); } else if (inp.type !== "number") render(); else updatePreview();
@@ -262,8 +264,9 @@ function go(fn) { const run = () => { fn(); resetCounts("p:"); render(); root.qu
   run(); root.querySelector(".scr")?.classList.add("enter"); }
 
 function listFromPlan(rows) {
+  if (!rows.length || !confirm(t("safetyAsk"))) return;
   const s = storeById(S().store), menu = menuFor(s); let n = 0;
-  for (const r of rows) { const m = menu.find(x => x.id === r.id); addListing({ store: s.id, item: r.id, price: m.price, discount: Math.min(r.discount, isMgr() ? 60 : 30), qty: r.n, bestBefore: "03:00", from: "21:00", to: "00:30", by: "AI" }); n += r.n; }
+  for (const r of rows) { const m = menu.find(x => x.id === r.id); addListing({ store: s.id, item: r.id, price: m.price, discount: Math.min(r.discount, isMgr() ? 60 : 30), qty: r.n, bestBefore: "03:00", from: "21:00", to: "00:30", by: "AI", checked: true, checkedBy: S().name }); n += r.n; }
   toast(t("listed")(n), "ok"); haptic();
 }
 
@@ -311,9 +314,13 @@ export function mountPortal(el, context) {
     if (d.fitem) { const m = menuFor(storeById(S().store)).find(x => x.id === d.fitem); P.sheet.item = m.id; P.sheet.price = m.price; render(); return; }
     if (d.fq) { P.sheet.qty = Math.max(1, Math.min(50, P.sheet.qty + +d.fq)); render(); return; }
     if (d.applyai) { P.sheet.discount = +d.applyai; render(); haptic(); return; }
-    if (d.publish !== undefined) { const f = P.sheet; P.sheet = null;
-      if (f.id) updateListing(f.id, { item: f.item, price: f.price, qty: Math.max(f.qty, f.sold || 0), bestBefore: f.bestBefore, from: f.from, to: f.to, discount: f.discount });
-      else addListing({ store: S().store, item: f.item, price: f.price, qty: f.qty, bestBefore: f.bestBefore, from: f.from, to: f.to, discount: f.discount, by: S().name });
+    if (d.publish !== undefined) { const f = P.sheet;
+      if (!f.checked) { toast(t("errSafety"), "err"); return; }
+      const mn = hm => { const [h, m] = hm.split(":").map(Number); return h * 60 + m; }, rel = x => (mn(x) - mn(f.from) + 1440) % 1440;
+      if (!(rel(f.to) > 0 && rel(f.to) <= rel(f.bestBefore))) { toast(t("errWindow"), "err"); return; }
+      P.sheet = null;
+      if (f.id) updateListing(f.id, { item: f.item, price: f.price, qty: Math.max(f.qty, f.sold || 0), bestBefore: f.bestBefore, from: f.from, to: f.to, discount: f.discount, checked: true, checkedBy: S().name });
+      else addListing({ store: S().store, item: f.item, price: f.price, qty: f.qty, bestBefore: f.bestBefore, from: f.from, to: f.to, discount: f.discount, by: S().name, checked: true, checkedBy: S().name });
       toast(t("listed")(f.qty), "ok"); haptic(); render(); return; }
     if (d.closesheet !== undefined) { P.sheet = null; render(); return; }
     if (d.ord) { P.ord = +d.ord; render(); return; }

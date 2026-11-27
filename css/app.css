@@ -468,3 +468,9 @@ input[type=range]{width:100%;accent-color:var(--teal);height:28px}
 .potential{margin-top:8px;border:1px dashed var(--soft);border-radius:12px;padding:12px;display:grid;gap:2px;font-size:13px}
 .potential small{color:var(--grey)}
 .method{background:#F7F9F8;border-radius:12px;padding:8px 12px;margin-top:12px}
+
+/* food safety */
+.chk{display:flex;align-items:center;gap:4px;color:var(--teal2)!important;font-weight:500}
+.allergen{font-size:12px;color:var(--grey);background:#F7F9F8;border-radius:10px;padding:8px 12px;margin:12px 0 0}
+.tog.safe{margin-top:12px;font-size:13px;font-weight:500;align-items:flex-start}
+.tog.safe span{flex:none;margin-top:1px}

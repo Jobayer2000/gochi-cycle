@@ -3,7 +3,7 @@
 import { ITEMS } from "./model.js";
 import { STORES, menuFor, chainOf } from "./stores.js";
 
-const KEY = "gochi_v3";
+const KEY = "gochi_v4";
 const listeners = new Set();
 export const FEE = 0.08; // Gochi Cycle platform fee on completed sales
 
@@ -15,7 +15,7 @@ function seed() {
     [...menu].sort(() => rnd() - 0.5).slice(0, 2 + Math.floor(rnd() * 2)).forEach((m, k) => listings.push({
       id: `${s.id}-${m.id}-seed${k}`, store: s.id, item: m.id, price: m.price,
       discount: [20, 30, 40][Math.floor(rnd() * 3)], qty: 1 + Math.floor(rnd() * 4), sold: 0,
-      bestBefore: "03:00", from: "21:00", to: "00:30", by: "AI", at: Date.now() - 3600e3,
+      bestBefore: "03:00", from: "21:00", to: "00:30", by: "AI", checked: true, checkedBy: "Demo staff", at: Date.now() - 3600e3,
     }));
   }
   const staff = {};
@@ -69,7 +69,6 @@ export function placeOrder({ store, kind, lines, day, slot }) {
   if (kind === "deal") for (const l of lines) { const li = DB.listings.find(x => x.id === l.listing); if (li) li.sold = Math.min(li.qty, li.sold + l.qty); }
   notify(store, { type: "sold", order: order.id, text: lines.map(l => `${l.qty}× ${l.item}`).join(", "), total });
   commit({ order: order.id });
-  setTimeout(() => { const o = DB.orders.find(x => x.id === order.id); if (o && o.status === 0) { o.status = 1; commit({ status: o.id }); } }, 3500); // demo auto-accept
   return order;
 }
 export function setStatus(id, status) {

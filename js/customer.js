@@ -3,13 +3,13 @@
 import { ITEMS } from "./model.js";
 import { CHAINS, STORES, SLOTS, PHOTO, storeById, storeLabel, storeName, menuFor } from "./stores.js";
 import { DB, commit, subscribe, listingsFor, placeOrder, myOrders, impactOf, signInCustomer, signUpCustomer, methodHTML } from "./state.js";
-import { countAll, resetCounts, toast, haptic, ico } from "./ui.js";
+import { countAll, resetCounts, toast, haptic, ico, esc } from "./ui.js";
 
 const C = {
   en: {
     hello: n => `Signed in as ${n}`, near: "Noboricho, Hiroshima", homeTitle: "Food near you", search: "Search food or store",
     all: "All", modePre: "Pre-order", modeDeal: "Tonight's deals", oneApp: "Three chains, one app",
-    preHint: "Order before the store cooks: it makes the right amount, you skip the queue.",
+    preHint: "Order ahead: the store can order the right amount, and you skip the queue.",
     dealHint: "Still-good food at a lower price. Pick up 21:00–00:30.",
     deals: n => `${n} deals`, km: k => `${k} km`, orderBy: c => `order by ${c}`, left: n => `${n} left`,
     menu: "Pre-order menu", tonight: "Tonight's deals", add: "Add", bb: t => `best before ${t}`,
@@ -24,13 +24,13 @@ const C = {
     name: "Your name", go: "Continue", guest: "Try as guest", loginNote: "Demo accounts are saved only in this browser (password hashed). Please don't use a real password.",
     signin: "Sign in", signup: "Create account", email: "Email", pw: "Password", pw6: "Password (6+ characters)", noAcc: "New here?", haveAcc: "Already have an account?",
     errWrong: "Email or password is wrong.", errExists: "An account with this email already exists.", errInvalid: "Please fill in name, a valid email and a 6+ character password.", welcome: n => `Signed in as ${n}`, bye: "Signed out",
-    demo: "Demo stores: no partnership with any chain yet.", done: "Order placed", doneSub: c => `Show code ${c} at the counter`,
+    demo: "Demo stores: no partnership with any chain yet.", checked: "Checked by staff", allergen: "Allergens: please check the label in the store or ask staff. The app does not judge allergens or food safety.", done: "Order placed", doneSub: c => `Show code ${c} at the counter`,
     readyToast: s => `Your order at ${s} is ready for pickup`, addedToast: n => `${n} added`,
   },
   jp: {
     hello: n => `${n}さんでログイン中`, near: "広島市・幟町", homeTitle: "近くの食品", search: "食品や店舗を検索",
     all: "すべて", modePre: "予約注文", modeDeal: "今夜のお得", oneApp: "大手3社を、ひとつのアプリで",
-    preHint: "調理前に注文。お店は作りすぎず、あなたは待たずに受け取れます。",
+    preHint: "事前に予約：お店はちょうどいい量を発注でき、あなたは待たずに受け取れます。",
     dealHint: "まだおいしい食品をお得に。受取 21:00〜00:30。",
     deals: n => `お得 ${n}件`, km: k => `${k} km`, orderBy: c => `${c}までに注文`, left: n => `残り${n}個`,
     menu: "予約メニュー", tonight: "今夜のお得", add: "追加", bb: t => `消費期限 ${t}`,
@@ -45,7 +45,7 @@ const C = {
     name: "お名前", go: "はじめる", guest: "ゲストで試す", loginNote: "デモ用アカウントはこのブラウザ内だけに保存されます（パスワードはハッシュ化）。実際のパスワードは使わないでください。",
     signin: "ログイン", signup: "アカウント作成", email: "メールアドレス", pw: "パスワード", pw6: "パスワード（6文字以上）", noAcc: "はじめての方", haveAcc: "アカウントをお持ちの方",
     errWrong: "メールアドレスまたはパスワードが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "名前・正しいメール・6文字以上のパスワードを入力してください。", welcome: n => `${n}さんでログインしました`, bye: "ログアウトしました",
-    demo: "デモ店舗：現在どのチェーンとも提携していません。", done: "注文しました", doneSub: c => `レジでコード ${c} を提示`,
+    demo: "デモ店舗：現在どのチェーンとも提携していません。", checked: "スタッフ確認済み", allergen: "アレルギー：店頭のラベルを確認するか、スタッフにお尋ねください。アプリはアレルギーや食品の安全を判断しません。", done: "注文しました", doneSub: c => `レジでコード ${c} を提示`,
     readyToast: s => `${s}のご注文が受取できます`, addedToast: n => `${n}を追加`,
   },
 };
@@ -93,7 +93,7 @@ function homeView() {
     .filter(s => !q || storeName(s, L()).toLowerCase().includes(q) || menuFor(s).some(m => (m.en + m.jp).toLowerCase().includes(q)))
     .filter(s => V.mode === "pre" || dealCount(s.id) > 0).sort((a, b) => a.km - b.km);
   const u = DB.user.name;
-  return `<header class="hello"><div><small>${ico("pin", 14)} ${t("near")}</small><b>${t("homeTitle")}</b></div><button class="avatar" data-nav="profile">${u.slice(0, 1).toUpperCase()}</button></header>
+  return `<header class="hello"><div><small>${ico("pin", 14)} ${t("near")}</small><b>${t("homeTitle")}</b></div><button class="avatar" data-nav="profile">${esc(u.slice(0, 1).toUpperCase())}</button></header>
     <div class="banner"><div><b>${t("oneApp")}</b><small>${Object.values(CHAINS).map(c => `<span style="color:${c.color}">${c[L()]}</span>`).join(" · ")}</small></div>${img("bento", "bannerimg")}</div>
     <div class="mode" role="tablist"><button class="${V.mode === "pre" ? "on" : ""}" data-mode="pre">${t("modePre")}</button><button class="${V.mode === "deal" ? "on" : ""}" data-mode="deal">${t("modeDeal")}</button><i style="transform:translateX(${V.mode === "pre" ? 0 : 100}%)"></i></div>
     <p class="hint">${V.mode === "pre" ? t("preHint") : t("dealHint")}</p>
@@ -115,7 +115,7 @@ function storeView() {
           <button class="add ${inCart("pre:" + m.id) ? "done" : ""}" data-add="pre:${m.id}" aria-label="${t("add")}">${inCart("pre:" + m.id) ? ico("check", 18) : ico("plus", 18)}</button></div></article>`).join("")
       : deals.length ? deals.map((l, i) => { const now = l.price * (1 - l.discount / 100);
           return `<article class="pcard deal" style="--i:${i}"><span class="sticker">−${l.discount}%</span>${img(l.item)}<div class="pc"><b>${iname(l.item)}</b>
-            <span class="price"><s>${yen(l.price)}</s> ${yen(now)}</span><small>${t("left")(l.qty - l.sold)} · ${t("bb")(l.bestBefore)}</small>
+            <span class="price"><s>${yen(l.price)}</s> ${yen(now)}</span><small>${t("left")(l.qty - l.sold)} · ${t("bb")(l.bestBefore)}</small>${l.checked ? `<small class="chk">${ico("check", 12)} ${t("checked")}</small>` : ""}
             <button class="add ${inCart("deal:" + l.id) ? "done" : ""}" data-add="deal:${l.id}" aria-label="${t("add")}">${inCart("deal:" + l.id) ? ico("check", 18) : ico("plus", 18)}</button></div></article>`; }).join("")
       : `<p class="emptyc">—</p>`}</div>`;
 }
@@ -137,7 +137,7 @@ function ordersView() {
 function profileView() {
   const done = myOrders().filter(o => o.status === 3), open = myOrders().filter(o => o.status < 3 && o.kind === "deal");
   const im = impactOf(done), pot = impactOf(open);
-  return `<div class="prof"><span class="avatar big">${DB.user.name.slice(0, 1).toUpperCase()}</span><b>${DB.user.name}</b></div>
+  return `<div class="prof"><span class="avatar big">${esc(DB.user.name.slice(0, 1).toUpperCase())}</span><b>${esc(DB.user.name)}</b></div>
     <h3 class="ttl">${t("impactMine")}</h3>
     <small class="lbl">${t("confirmed")}</small>
     <div class="mini"><div><b data-count="${myOrders().length}">0</b><small>${t("orderCount")}</small></div><div><b data-count="${im.kg}" data-dec="2" data-suf=" kg">0</b><small>${t("foodSaved")}</small></div>
@@ -158,7 +158,7 @@ function sheetView() {
       <span class="qty"><button data-qty="${i}" data-d="-1" aria-label="−">−</button><b>${l.qty}</b><button data-qty="${i}" data-d="1" aria-label="+">+</button></span><span class="lp">${yen(l.qty * l.price)}</span></div>`).join("")}
     ${hasPre ? `<div class="slotpick"><small>${t("slot")}</small><div class="seg2">${["today", "tomorrow"].map(d => `<button class="${V.day === d ? "on" : ""}" data-day="${d}">${t(d)}</button>`).join("")}</div>
       <div class="seg2">${SLOTS.map(x => `<button class="${V.slot === x.id ? "on" : ""}" data-slot="${x.id}">${x.label}</button>`).join("")}</div></div>` : ""}
-    <div class="tot"><span>${t("total")}</span><b>${yen(total)}</b></div>${saved > 0 ? `<p class="save">${t("saved")(yen(saved))}</p>` : ""}
+    <p class="allergen">${t("allergen")}</p><div class="tot"><span>${t("total")}</span><b>${yen(total)}</b></div>${saved > 0 ? `<p class="save">${t("saved")(yen(saved))}</p>` : ""}
     <button class="cbtn primary" data-act="place">${t("place")}</button><p class="fine">${t("payNote")}</p>`}</section>`;
 }
 
