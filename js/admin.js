@@ -1,6 +1,6 @@
 // Gochi HQ (our side): platform income, commission, store payouts, growth scenarios.
 import { STORES, CHAINS, storeById, storeLabel } from "./stores.js";
-import { DB, commit, subscribe, platformStats, FEE, PROCESSING, hash } from "./state.js";
+import { DB, commit, subscribe, platformStats, FEE, PROCESSING, hash, methodHTML } from "./state.js";
 import { countAll, resetCounts, toast } from "./ui.js";
 
 const T = {
@@ -16,7 +16,7 @@ const T = {
     ],
     flowTitle: "Where ¥1,000 of sales goes", flow: ["Store receives", "Gochi commission", "of which payment cost"],
     storesTitle: "Stores", colStore: "Store", colOrders: "Orders", colGmv: "Sales", colFee: "Our fee", colBal: "Owed",
-    scenTitle: "Growth scenarios (team model, per year)", scenNote: "From our model: 10 offers/store/day × ¥300, 8% fee, 3% payment cost, ¥12,000 support/store, ¥3m fixed (Hiroshima). Scenarios, not forecasts.",
+    scenTitle: "Growth scenarios (team model, per year)", scenNote: "Basis: 10 offers per store per day × 250 g = 2.5 kg, about 29% of the 8.6 kg of unsold food per store per day that Lawson reports (FY2025): a deliberately partial share. 20% and 30% sell-through are test scenarios, not data. “Result” = our 8% fee − 3% payment cost − ¥12,000 support per store − ¥3m fixed costs; development, marketing and tax are excluded. Scenarios, not forecasts.", liveNote: "Live figures from this demo: our net income here = commission − payment cost only (support and fixed costs are in the scenarios below). Impact counts picked-up orders only.", howCount: "How impact is counted",
     scen: [["Hiroshima, 20% of offers sell", "revenue ¥20.4m", "result −¥4.2m"], ["Hiroshima, 30% of offers sell", "revenue ¥30.5m", "result +¥2.1m"],
       ["Break-even at 30%", "≈ 680 active stores", "covers ¥3m fixed"], ["Japan (53,134 stores), 30%", "revenue ≈ ¥1.40bn", "commission only"]],
     logout: "Log out", demo: "Demo data in this browser only. No real money moves.",
@@ -33,7 +33,7 @@ const T = {
     ],
     flowTitle: "売上¥1,000の内訳", flow: ["店舗の受取", "Gochiの手数料", "うち決済コスト"],
     storesTitle: "店舗", colStore: "店舗", colOrders: "注文", colGmv: "売上", colFee: "手数料", colBal: "未払い",
-    scenTitle: "成長シナリオ（チームのモデル・年間）", scenNote: "モデルの前提：1店舗1日10品×¥300、手数料8%、決済3%、サポート¥12,000/店、固定費¥300万（広島）。予測ではなくシナリオです。",
+    scenTitle: "成長シナリオ（チームのモデル・年間）", scenNote: "根拠：1店舗1日10品 × 250g = 2.5kg。ローソンが公表する1店舗1日あたりの売れ残り食品8.6kg（2025年度）の約29%で、意図的に一部だけを想定。販売率20%・30%は検証用のシナリオでデータではありません。「収支」＝手数料8% − 決済3% − サポート1店¥12,000 − 固定費¥300万。開発・広告・税は含みません。予測ではなくシナリオです。", liveNote: "このデモの実数：ここでの純収入＝手数料 − 決済コストのみ（サポート費・固定費は下のシナリオに含む）。インパクトは受け取り済みの注文のみ。", howCount: "インパクトの数え方",
     scen: [["広島・オファーの20%が販売", "収入 ¥2,040万", "収支 −¥420万"], ["広島・オファーの30%が販売", "収入 ¥3,050万", "収支 +¥210万"],
       ["30%での損益分岐", "約680店舗", "固定費¥300万をカバー"], ["全国（53,134店）・30%", "収入 約¥14億", "手数料のみ"]],
     logout: "ログアウト", demo: "デモデータ（このブラウザ内のみ）。実際のお金は動きません。",
@@ -58,7 +58,7 @@ function render() {
   root.innerHTML = `<div class="app admin"><div class="scr wide">
     <header class="ahead"><div><small>${t("live")}</small><h2>${t("hq")}</h2></div><button class="cbtn ghost sm" data-alogout>${t("logout")}</button></header>
     <section class="kgrid hero">${k(t("gmv"), p.gmv, 'data-pre="¥"')}${k(t("commission")(FEE * 100), p.commission, 'data-pre="¥"')}${k(t("processing")(PROCESSING * 100), p.processing, 'data-pre="¥"')}${k(t("net"), p.net, 'data-pre="¥"')}</section>
-    <section class="kgrid">${k(t("pending"), p.pending, 'data-pre="¥"')}${k(t("paid"), p.paid, 'data-pre="¥"')}${k(t("orders"), p.orders)}${k(t("customers"), p.customers)}
+    <p class="muted sm">${t("liveNote")}</p><section class="kgrid">${k(t("pending"), p.pending, 'data-pre="¥"')}${k(t("paid"), p.paid, 'data-pre="¥"')}${k(t("orders"), p.orders)}${k(t("customers"), p.customers)}
       ${k(t("active"), p.activeStores)}${k(t("accounts"), p.accounts)}${k(t("food"), p.im.kg, 'data-dec="2" data-suf=" kg"')}${k(t("co2"), p.im.co2, 'data-dec="2" data-suf=" kg"')}</section>
     <div class="acols">
       <section class="card"><b>${t("howTitle")}</b>${t("how").map(([h, d], i) => `<div class="howrow" style="--i:${i}"><span class="num">${i + 1}</span><div><b>${h}</b><small>${d}</small></div></div>`).join("")}
@@ -66,7 +66,7 @@ function render() {
         <div class="split"><span style="flex:${100 - FEE * 100}" class="a"><em>${t("flow")[0]}</em>¥920</span><span style="flex:${FEE * 100}" class="b"><em>${t("flow")[1]}</em>¥80</span></div>
         <small class="muted">${t("flow")[2]}: ≈¥30 → ${L() === "jp" ? "Gochiの純収入" : "our net"} ≈¥50</small></section>
       <section class="card"><b>${t("scenTitle")}</b><div class="scen">${t("scen").map(([a, b, c], i) => `<div style="--i:${i}"><small>${a}</small><b>${b}</b><em class="${c.includes("−") ? "neg" : ""}">${c}</em></div>`).join("")}</div>
-        <small class="muted">${t("scenNote")}</small></section>
+        <small class="muted">${t("scenNote")}</small>${methodHTML(L(), t("howCount"))}</section>
     </div>
     <section class="card"><b>${t("storesTitle")}</b><div class="tablewrap"><table class="atable"><tr><th>${t("colStore")}</th><th>${t("colOrders")}</th><th>${t("colGmv")}</th><th>${t("colFee")}</th><th>${t("colBal")}</th></tr>
       ${p.stores.map(s => `<tr><td>${storeLabel(storeById(s.id), L())}</td><td>${s.orders}</td><td>${yen(s.gmv)}</td><td>${yen(s.fee)}</td><td>${yen(s.balance)}</td></tr>`).join("")}</table></div></section>

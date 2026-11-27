@@ -2,7 +2,7 @@
 // tonight's leftover deals (listed by stores), cart, checkout, live order status, profile impact.
 import { ITEMS } from "./model.js";
 import { CHAINS, STORES, SLOTS, PHOTO, storeById, storeLabel, storeName, menuFor } from "./stores.js";
-import { DB, commit, subscribe, listingsFor, placeOrder, myOrders, impactOf, signInCustomer, signUpCustomer } from "./state.js";
+import { DB, commit, subscribe, listingsFor, placeOrder, myOrders, impactOf, signInCustomer, signUpCustomer, methodHTML } from "./state.js";
 import { countAll, resetCounts, toast, haptic, ico } from "./ui.js";
 
 const C = {
@@ -18,7 +18,7 @@ const C = {
     other: "Your cart has items from another store. Start a new cart?",
     orders: "Orders", noOrders: "No orders yet. Pre-order lunch or rescue a deal tonight.",
     st: ["Order placed", "Store accepted", "Ready for pickup", "Picked up"], code: "Pickup code",
-    home: "Home", profile: "Profile", logout: "Log out", impactMine: "Your impact",
+    home: "Home", profile: "Profile", logout: "Log out", impactMine: "Your impact", confirmed: "Confirmed: picked up", potential: "Potential: not picked up yet", potentialNote: "Counts as rescued only after the store hands it over.", howCount: "How we count impact",
     foodSaved: "food rescued", money: "saved", orderCount: "orders", co2: "CO₂e avoided",
     loginTitle: "Waste nothing,\ncycle everything.", loginLead: "Pre-order from Seven-Eleven, FamilyMart and Lawson near you, and rescue good food tonight.",
     name: "Your name", go: "Continue", guest: "Try as guest", loginNote: "Demo accounts are saved only in this browser (password hashed). Please don't use a real password.",
@@ -39,7 +39,7 @@ const C = {
     other: "カートに別の店舗の商品があります。新しいカートにしますか？",
     orders: "注文", noOrders: "まだ注文はありません。ランチを予約するか、今夜のお得を救いましょう。",
     st: ["注文完了", "店舗が受付", "受取できます", "受取済み"], code: "受取コード",
-    home: "ホーム", profile: "マイページ", logout: "ログアウト", impactMine: "あなたのインパクト",
+    home: "ホーム", profile: "マイページ", logout: "ログアウト", impactMine: "あなたのインパクト", confirmed: "確定：受け取り済み", potential: "見込み：まだ受け取っていない分", potentialNote: "店舗で受け渡しが完了してから、救った食品として計上します。", howCount: "インパクトの数え方",
     foodSaved: "救った食品", money: "節約", orderCount: "注文", co2: "CO₂e削減",
     loginTitle: "ムダにしない。\nすべてを循環させる。", loginLead: "近くのセブン-イレブン、ファミリーマート、ローソンで予約注文。今夜はおいしい食品を救おう。",
     name: "お名前", go: "はじめる", guest: "ゲストで試す", loginNote: "デモ用アカウントはこのブラウザ内だけに保存されます（パスワードはハッシュ化）。実際のパスワードは使わないでください。",
@@ -135,11 +135,15 @@ function ordersView() {
 }
 
 function profileView() {
-  const im = impactOf(myOrders());
+  const done = myOrders().filter(o => o.status === 3), open = myOrders().filter(o => o.status < 3 && o.kind === "deal");
+  const im = impactOf(done), pot = impactOf(open);
   return `<div class="prof"><span class="avatar big">${DB.user.name.slice(0, 1).toUpperCase()}</span><b>${DB.user.name}</b></div>
     <h3 class="ttl">${t("impactMine")}</h3>
+    <small class="lbl">${t("confirmed")}</small>
     <div class="mini"><div><b data-count="${myOrders().length}">0</b><small>${t("orderCount")}</small></div><div><b data-count="${im.kg}" data-dec="2" data-suf=" kg">0</b><small>${t("foodSaved")}</small></div>
       <div><b data-count="${im.saved}" data-pre="¥">0</b><small>${t("money")}</small></div><div><b data-count="${im.co2}" data-dec="2" data-suf=" kg">0</b><small>${t("co2")}</small></div></div>
+    ${pot.kg ? `<div class="potential"><b>${t("potential")}</b><span>${pot.kg.toFixed(2)} kg · ${pot.co2.toFixed(2)} kg CO₂e</span><small>${t("potentialNote")}</small></div>` : ""}
+    ${methodHTML(L(), t("howCount"))}
     <button class="cbtn ghost" data-act="logout">${t("logout")}</button>`;
 }
 

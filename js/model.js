@@ -127,7 +127,10 @@ export function plan(models, ctx) {
     // markdown suggestion for expected leftovers
     const risk = leftoverAI / Math.max(1, aiMake);
     const discount = risk > 0.15 ? 40 : risk > 0.08 ? 30 : 20;
-    return { ...it, pre, forecast: fc, habit, aiMake, leftoverHabit, leftoverAI, discount, markdownAt: "21:00" };
+    const f = features(ctx.wd, ctx.weather, ctx.temp, ctx.event);
+    const contrib = f.map((x, i) => [FEATURE_NAMES[i], m.w[i] * x]).filter(([, v], i) => i === 0 || Math.abs(v) > 0.05);
+    const lastWeek = sameDay ? sameDay.sold - sameDay.pre : m.meanSold;
+    return { ...it, pre, walk, lastWeek, buffer: Math.sqrt(walk) * 0.5, contrib, forecast: fc, habit, aiMake, leftoverHabit, leftoverAI, discount, markdownAt: "21:00" };
   });
 }
 

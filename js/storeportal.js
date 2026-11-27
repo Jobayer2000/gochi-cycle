@@ -3,7 +3,7 @@
 import { ITEMS, WEATHER, FEATURE_NAMES, FACTORS, makeHistory, trainAll, plan } from "./model.js";
 import { CHAINS, STORES, PHOTO, storeById, storeLabel, storeName, menuFor } from "./stores.js";
 import { DB, commit, subscribe, listingsFor, addListing, updateListing, removeListing, suggestDiscount, ordersFor, setStatus,
-  notesFor, markRead, walletFor, requestPayout, staffFor, addStaff, impactOf, FEE, signInStore, signUpStore } from "./state.js";
+  notesFor, markRead, walletFor, requestPayout, staffFor, addStaff, impactOf, FEE, signInStore, signUpStore, methodHTML } from "./state.js";
 import { countAll, resetCounts, toast, haptic, ico } from "./ui.js";
 
 const T = {
@@ -12,7 +12,7 @@ const T = {
     email: "Email", pin4: "4-digit PIN", yourName: "Manager name", whichStore: "Your store", create: "Create store account", errWrong: "Email or PIN is wrong.", errExists: "This email is already registered.", errInvalid: "Fill in all fields; PIN must be 4 digits.", welcome: n => `Signed in as ${n}`, regNote: "Demo: accounts stay in this browser. Real stores would verify ownership with the chain.",
     pick: "Choose your store", who: "Who is working?", pin: "Enter PIN", demoPins: "Demo PINs · manager 1111 · staff 2222", wrong: "Wrong PIN",
     manager: "Manager", staff: "Staff", tabs: ["Today", "Listings", "Orders", "Wallet", "More"],
-    todayTitle: "Tomorrow's AI plan", editHint: "The AI suggests; you decide. Change how many to make, how many to list and the discount, then list.", makeL: "Make", listL: "List", discL: "Discount", aiWas: v => `AI: ${v}`, edited: "edited", resetAI: "Reset to AI", nothing: "Nothing to list", day: "Day", temp: "Temperature", event: "Local event",
+    todayTitle: "Tomorrow's AI plan", howMade: "How this number was made", kML: "ML", kRule: "Rule", kSim: "Simulated", wUsual: (d, lw, x, p, h) => `Usual plan: last ${d}\u2019s walk-in sales ${lw} × 1.15 = ${x}, + pre-orders ${p} = ${h}`, wWalk: "AI walk-in estimate (ridge regression):", wMake: (w, p, b, m) => `Make = walk-in ${w} + pre-orders ${p} + safety buffer 0.5 × √walk-in = ${b} → ${m}`, wLeft: (m, f, l) => `Expected leftovers = make ${m} − forecast ${f} = ${l}`, wDisc: "Suggested discount by leftover share: over 15% → 40%, over 8% → 30%, otherwise 20%", wData: "Trained on 120 days of simulated sales; a pilot store\u2019s POS data would replace them.", editHint: "The AI suggests; you decide. Change how many to make, how many to list and the discount, then list.", makeL: "Make", listL: "List", discL: "Discount", aiWas: v => `AI: ${v}`, edited: "edited", resetAI: "Reset to AI", nothing: "Nothing to list", day: "Day", temp: "Temperature", event: "Local event",
     weather: { sunny: "Sunny", cloudy: "Cloudy", rain: "Rain" }, days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     fc: "AI forecast", make: n => `Make ${n}`, usual: n => `usual ${n}`, preApp: n => `${n} pre-ordered in app`, leftover: n => `~${n} may be left`,
     listOne: (n, d) => `List ${n} at −${d}%`, listAll: "List all expected leftovers", listed: n => `${n} items listed in the customer app`,
@@ -26,10 +26,10 @@ const T = {
     pre: "Pre-order", deal: "Leftover deal", accept: "Accept", ready: "Mark ready", picked: "Picked up", codeAsk: c => `Ask the customer for code ${c}`,
     walletTitle: "Wallet", balance: "Available balance", gross: "Sales", fee: f => `Gochi fee (${f}%)`, net: "Net income", payout: "Request payout",
     payoutDone: a => `Payout of ${a} requested (demo)`, noPay: "Only a manager can request payouts.", tx: "Transactions", payouts: "Payouts", txNone: "Sales appear here when customers pick up.",
-    moreTitle: "Reports", rescued: "Food rescued", income: "Income from leftovers", co2: "CO₂e avoided", orders: "Orders",
+    moreTitle: "Reports", howCount: "How impact is counted (after pickup only)", rescued: "Food rescued", income: "Income from leftovers", co2: "CO₂e avoided", orders: "Orders",
     week: "Last 7 days · income (¥)", weekNote: "Earlier days are demo data; today is live.", aiTitle: "How the AI works",
     aiLead: "One machine-learning model per item (ridge regression), trained on 120 days of sales. Tested on 14 days it never saw.",
-    acc: "AI error vs usual method (items/day)", learned: "What the model learned (Makunouchi bento)",
+    acc: "Mean absolute error (MAE, items per day) on 14 held-out simulated days: AI · usual method · improvement = 1 − AI ÷ usual", learned: "What the model learned (Makunouchi bento)",
     staffTitle: "Staff", addStaff: "Add staff", name: "Name", role: "Role", logout: "Log out", reset: "Reset demo data",
     notes: "Notifications", noNotes: "No notifications yet.", soldNote: (x, y) => `Sold: ${x} · ¥${y}`, demoData: "Demo data: synthetic sales history, no real store data.",
     wn: { base: "base", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", cloudy: "cloudy", rain: "rain", temperature: "+1 °C", "local event": "local event" },
@@ -39,7 +39,7 @@ const T = {
     email: "メールアドレス", pin4: "4桁のPIN", yourName: "店長の名前", whichStore: "店舗", create: "店舗アカウントを作成", errWrong: "メールアドレスまたはPINが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "すべて入力してください（PINは4桁）。", welcome: n => `${n}さんでログインしました`, regNote: "デモ：アカウントはこのブラウザ内だけ。実際はチェーン本部で店舗確認を行います。",
     pick: "店舗を選択", who: "担当者は？", pin: "PINを入力", demoPins: "デモPIN・店長 1111・スタッフ 2222", wrong: "PINが違います",
     manager: "店長", staff: "スタッフ", tabs: ["今日", "出品", "注文", "ウォレット", "その他"],
-    todayTitle: "明日のAIプラン", editHint: "AIが提案し、お店が決めます。製造数・出品数・値引き率を変更して出品できます。", makeL: "製造", listL: "出品", discL: "値引き", aiWas: v => `AI：${v}`, edited: "変更済み", resetAI: "AIの値に戻す", nothing: "出品なし", day: "曜日", temp: "気温", event: "地域イベント",
+    todayTitle: "明日のAIプラン", howMade: "この数字の出し方", kML: "機械学習", kRule: "ルール", kSim: "模擬データ", wUsual: (d, lw, x, p, h) => `いつもの量：先週${d}曜の来店販売 ${lw} × 1.15 = ${x}、＋予約 ${p} = ${h}`, wWalk: "AIの来店需要予測（リッジ回帰）：", wMake: (w, p, b, m) => `製造数 = 来店予測 ${w} ＋ 予約 ${p} ＋ 安全在庫 0.5 × √来店予測 = ${b} → ${m}`, wLeft: (m, f, l) => `売れ残り見込み = 製造 ${m} − 予測 ${f} = ${l}`, wDisc: "値引きの目安（売れ残りの割合）：15%超 → 40%、8%超 → 30%、それ以外 20%", wData: "120日分の模擬販売データで学習。試験導入ではお店のPOSデータに置き換えます。", editHint: "AIが提案し、お店が決めます。製造数・出品数・値引き率を変更して出品できます。", makeL: "製造", listL: "出品", discL: "値引き", aiWas: v => `AI：${v}`, edited: "変更済み", resetAI: "AIの値に戻す", nothing: "出品なし", day: "曜日", temp: "気温", event: "地域イベント",
     weather: { sunny: "晴れ", cloudy: "くもり", rain: "雨" }, days: ["日", "月", "火", "水", "木", "金", "土"],
     fc: "AI予測", make: n => `${n}個つくる`, usual: n => `いつも ${n}個`, preApp: n => `アプリ予約 ${n}個`, leftover: n => `約${n}個 残る見込み`,
     listOne: (n, d) => `${n}個を−${d}%で出品`, listAll: "売れ残り予定をすべて出品", listed: n => `${n}個を利用者アプリに出品しました`,
@@ -53,10 +53,10 @@ const T = {
     pre: "予約注文", deal: "値引き品", accept: "受付", ready: "準備完了", picked: "受け渡し完了", codeAsk: c => `お客様のコード ${c} を確認`,
     walletTitle: "ウォレット", balance: "出金可能残高", gross: "売上", fee: f => `Gochi手数料（${f}%）`, net: "純収入", payout: "出金をリクエスト",
     payoutDone: a => `${a}の出金をリクエストしました（デモ）`, noPay: "出金は店長のみ可能です。", tx: "取引", payouts: "出金履歴", txNone: "受け渡しが完了すると売上がここに表示されます。",
-    moreTitle: "レポート", rescued: "救った食品", income: "値引き品の売上", co2: "CO₂e削減", orders: "注文",
+    moreTitle: "レポート", howCount: "インパクトの数え方（受け取り後のみ）", rescued: "救った食品", income: "値引き品の売上", co2: "CO₂e削減", orders: "注文",
     week: "直近7日・売上（円）", weekNote: "過去の日はデモデータ、今日は実際の値です。", aiTitle: "AIのしくみ",
     aiLead: "商品ごとの機械学習モデル（リッジ回帰）を120日分の販売データで学習。学習に使っていない14日間でテスト。",
-    acc: "AIの誤差といつもの方法（個/日）", learned: "モデルが学んだこと（幕の内弁当）",
+    acc: "平均絶対誤差（MAE、個/日）・学習に使っていない模擬データ14日間：AI・いつもの方法・改善率 = 1 − AI ÷ いつも", learned: "モデルが学んだこと（幕の内弁当）",
     staffTitle: "スタッフ", addStaff: "スタッフを追加", name: "名前", role: "役割", logout: "ログアウト", reset: "デモデータをリセット",
     notes: "通知", noNotes: "通知はまだありません。", soldNote: (x, y) => `販売：${x}・¥${y}`, demoData: "デモデータ：架空の販売履歴。実際の店舗データは使用していません。",
     wn: { base: "基本", Mon: "月曜", Tue: "火曜", Wed: "水曜", Thu: "木曜", Fri: "金曜", Sat: "土曜", cloudy: "くもり", rain: "雨", temperature: "気温+1℃", "local event": "地域イベント" },
@@ -136,7 +136,14 @@ function todayView() {
     <div class="plist">${rows.map((r, i) => { const e = eff(r), max = Math.max(r.habit, e.make, 1);
       return `<article class="prow" style="--i:${i}">${img(r.id)}<div class="pr"><b>${iname(r.id)}${e.edited ? ` <span class="tag">${t("edited")}</span>` : ""}</b>
       <small>${t("fc")} <b class="ai">${r.forecast.toFixed(0)}</b> · ${t("usual")(r.habit)}${r.pre ? ` · <span class="tag">${t("preApp")(r.pre)}</span>` : ""}</small>
-      <span class="bar"><i style="width:${(e.make / max) * 100}%"></i><i class="u" style="width:${(r.habit / max) * 100}%"></i></span></div>
+      <span class="bar"><i style="width:${(e.make / max) * 100}%"></i><i class="u" style="width:${(r.habit / max) * 100}%"></i></span>
+      <details class="why"><summary>${t("howMade")}</summary><ol>
+        <li><span class="kind rule">${t("kRule")}</span> ${t("wUsual")(t("days")[P.ctx.wd], Math.round(r.lastWeek), Math.round(r.lastWeek * 1.15), r.pre, r.habit)}</li>
+        <li><span class="kind ml">${t("kML")}</span> ${t("wWalk")} ${r.contrib.map(([n, v]) => `${n === "temperature" ? t("temp") + " " + P.ctx.temp + "°C" : t("wn")[n]} ${v >= 0 && n !== "base" ? "+" : ""}${v.toFixed(1)}`).join(" · ")} = <b>${r.walk.toFixed(1)}</b></li>
+        <li><span class="kind rule">${t("kRule")}</span> ${t("wMake")(r.walk.toFixed(1), r.pre, r.buffer.toFixed(1), r.aiMake)}</li>
+        <li><span class="kind rule">${t("kRule")}</span> ${t("wLeft")(e.make, Math.round(r.forecast), e.left)}</li>
+        <li><span class="kind rule">${t("kRule")}</span> ${t("wDisc")}</li>
+        <li><span class="kind sim">${t("kSim")}</span> ${t("wData")}</li></ol></details></div>
       <div class="adj">
         <div class="adjrow"><span>${t("makeL")}</span><span class="stepper sm"><button data-adj="${r.id}|make|-1" aria-label="−">−</button><b>${e.make}</b><button data-adj="${r.id}|make|1" aria-label="+">+</button></span><small>${t("aiWas")(r.aiMake)}</small></div>
         <div class="adjrow"><span>${t("listL")}</span><span class="stepper sm"><button data-adj="${r.id}|n|-1" aria-label="−">−</button><b>${e.n}</b><button data-adj="${r.id}|n|1" aria-label="+">+</button></span><small>${t("aiWas")(e.left)}</small></div>
@@ -208,7 +215,7 @@ function moreView() {
   return `<h3 class="ttl">${t("moreTitle")}</h3>
     <div class="mini"><div><b data-count="${im.kg}" data-dec="2" data-suf=" kg">0</b><small>${t("rescued")}</small></div><div><b data-count="${inc}" data-pre="¥">0</b><small>${t("income")}</small></div>
       <div><b data-count="${im.co2}" data-dec="2" data-suf=" kg">0</b><small>${t("co2")}</small></div><div><b data-count="${ordersFor(s).length}">0</b><small>${t("orders")}</small></div></div>
-    <div class="card"><small class="lbl">${t("week")}</small><div class="wbars">${days.map((v, i) => `<span style="--h:${(v / mx) * 100}%;--i:${i}" class="${i === 6 ? "today" : ""}"><em>${Math.round(v / 100) / 10}k</em></span>`).join("")}</div><small class="muted">${t("weekNote")}</small></div>
+    <div class="card"><small class="lbl">${t("week")}</small><div class="wbars">${days.map((v, i) => `<span style="--h:${(v / mx) * 100}%;--i:${i}" class="${i === 6 ? "today" : ""}"><em>${Math.round(v / 100) / 10}k</em></span>`).join("")}</div><small class="muted">${t("weekNote")}</small>${methodHTML(L(), t("howCount"))}</div>
     <div class="card"><b>${t("aiTitle")}</b><p class="muted sm">${t("aiLead")}</p><small class="lbl">${t("acc")}</small>
       ${ITEMS.map(it => { const mm = models[it.id], b = (1 - mm.maeAI / mm.maeHabit) * 100; return `<div class="accrow"><span>${iname(it.id)}</span><span class="ai">${mm.maeAI.toFixed(1)}</span><span class="muted">${mm.maeHabit.toFixed(1)}</span><span class="tag ok">−${b.toFixed(0)}%</span></div>`; }).join("")}
       <small class="lbl">${t("learned")}</small>${m.w.map((v, i) => i === 0 ? "" : `<div class="wrow"><span>${t("wn")[FEATURE_NAMES[i]]}</span><i class="wbar ${v < 0 ? "neg" : ""}" style="width:${(Math.abs(v) / top) * 100}%"></i><span>${v > 0 ? "+" : ""}${v.toFixed(1)}</span></div>`).join("")}

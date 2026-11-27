@@ -163,3 +163,28 @@ export function platformStats() {
     pending: stores.reduce((s, x) => s + x.balance, 0), paid: stores.reduce((s, x) => s + x.paid, 0),
     activeStores: stores.filter(x => x.orders || x.live).length, stores, im, accounts: DB.accounts.stores.length };
 }
+
+// How impact is counted (shown in the customer profile, store reports and HQ).
+export const METHOD = {
+  en: [
+    "Counted only after pickup: an order becomes rescued food when the store marks it Picked up. Before that the app shows it as potential impact.",
+    "Rescued food (leftovers bought and picked up): kg × (3.19 × 50% − 0.10) = 1.495 kg CO₂e per kg.",
+    "3.19 kg CO₂e per kg: average production footprint of food in Too Good To Go bags, EU, 2022–23 (Blonk & Mérieux NutriSciences, 2024, Table 9). Not a Japanese factor.",
+    "50% displacement: our assumption that about half of rescued food replaces food the customer would otherwise have bought new; the other half is extra eating that saves no production. Not measured; to be tested in a pilot (e.g. by asking customers).",
+    "0.10 kg CO₂e per kg: our rough allowance for the service itself, covering customer travel to the store, packaging and app/server energy. Not measured.",
+    "Prevented food (made or ordered less because of the forecast) is shown separately in the store plan and is not added to rescued food, so nothing is counted twice. Its CO₂e is not in these totals.",
+    "Avoided disposal emissions (collection, incineration) are not included, so the estimate is conservative.",
+    "The class-pitch scenarios also assume 50% of sales are additional and 90% is eaten; the app counts each confirmed pickup as eaten.",
+  ],
+  jp: [
+    "受け取り後にのみ計上：店舗が「受け渡し完了」にした時点で救った食品になります。それまでは見込みとして表示します。",
+    "救った食品（購入・受け取り済みの値引き品）：kg ×（3.19 × 50% − 0.10）＝ 1kgあたり1.495 kg CO₂e。",
+    "3.19 kg CO₂e/kg：Too Good To Goの袋に入る食品の平均生産時排出量（EU、2022–23年、Blonk & Mérieux NutriSciences 2024、表9）。日本の係数ではありません。",
+    "代替率50%：救った食品の約半分が、本来新しく買うはずだった食品の代わりになるという仮定。残り半分は追加の消費で生産削減なし。未測定で、試験導入で検証予定（例：利用者アンケート）。",
+    "1kgあたり0.10 kg CO₂e：サービス自体の排出の概算（来店移動・包装・アプリ／サーバー）。未測定。",
+    "防いだ食品（予測により作る・発注する量を減らした分）は店舗プランで別に表示し、救った食品には足さないため二重計上しません。そのCO₂eはこの合計に含みません。",
+    "廃棄時の排出（収集・焼却）は含めていないため、控えめな推計です。",
+    "授業発表のシナリオでは、売上の50%が追加分・90%が食べられると仮定。アプリでは受け取り済みの注文を食べられたものとして数えます。",
+  ],
+};
+export const methodHTML = (lang, title) => `<details class="method"><summary>${title}</summary><ol>${METHOD[lang].map(x => `<li>${x}</li>`).join("")}</ol></details>`;
