@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -22,7 +22,8 @@
       <button data-role="admin" data-i18n="roleAdmin"></button>
       <i></i>
     </div>
-    <button id="lang" class="lang" aria-label="Switch language">日本語</button>
+    <button id="guideBtn" class="guidebtn"></button>
+    <button id="lang" class="lang" aria-label="Switch language">English</button>
   </header>
 
   <main class="stage">
@@ -46,6 +47,7 @@
       <p class="small"><a href="credits.html" data-i18n="credits"></a> · <a href="https://github.com/Jobayer2000/gochi-cycle">GitHub</a></p>
     </aside>
   </main>
+  <aside id="guide" class="guide" aria-live="polite"></aside>
   <div id="toasts" aria-live="polite"></div>
   <script type="module" src="js/app.js"></script>
 </body>

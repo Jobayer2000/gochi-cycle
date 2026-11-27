@@ -24,7 +24,7 @@ const C = {
     name: "Your name", go: "Continue", guest: "Try as guest", loginNote: "Demo accounts are saved only in this browser (password hashed). Please don't use a real password.",
     signin: "Sign in", signup: "Create account", email: "Email", pw: "Password", pw6: "Password (6+ characters)", noAcc: "New here?", haveAcc: "Already have an account?",
     errWrong: "Email or password is wrong.", errExists: "An account with this email already exists.", errInvalid: "Please fill in name, a valid email and a 6+ character password.", welcome: n => `Signed in as ${n}`, bye: "Signed out",
-    demo: "Demo stores: no partnership with any chain yet.", checked: "Checked by staff", allergen: "Allergens: please check the label in the store or ask staff. The app does not judge allergens or food safety.", done: "Order placed", doneSub: c => `Show code ${c} at the counter`,
+    demoHint: "Demo login is filled in: just tap Sign in. (demo@gochi.demo · demo1234)", demo: "Demo stores: no partnership with any chain yet.", checked: "Checked by staff", allergen: "Allergens: please check the label in the store or ask staff. The app does not judge allergens or food safety.", done: "Order placed", doneSub: c => `Show code ${c} at the counter`,
     readyToast: s => `Your order at ${s} is ready for pickup`, addedToast: n => `${n} added`,
   },
   jp: {
@@ -45,7 +45,7 @@ const C = {
     name: "お名前", go: "はじめる", guest: "ゲストで試す", loginNote: "デモ用アカウントはこのブラウザ内だけに保存されます（パスワードはハッシュ化）。実際のパスワードは使わないでください。",
     signin: "ログイン", signup: "アカウント作成", email: "メールアドレス", pw: "パスワード", pw6: "パスワード（6文字以上）", noAcc: "はじめての方", haveAcc: "アカウントをお持ちの方",
     errWrong: "メールアドレスまたはパスワードが違います。", errExists: "このメールアドレスは登録済みです。", errInvalid: "名前・正しいメール・6文字以上のパスワードを入力してください。", welcome: n => `${n}さんでログインしました`, bye: "ログアウトしました",
-    demo: "デモ店舗：現在どのチェーンとも提携していません。", checked: "スタッフ確認済み", allergen: "アレルギー：店頭のラベルを確認するか、スタッフにお尋ねください。アプリはアレルギーや食品の安全を判断しません。", done: "注文しました", doneSub: c => `レジでコード ${c} を提示`,
+    demoHint: "デモ用ログインは入力済み：ログインを押すだけ（demo@gochi.demo・demo1234）", demo: "デモ店舗：現在どのチェーンとも提携していません。", checked: "スタッフ確認済み", allergen: "アレルギー：店頭のラベルを確認するか、スタッフにお尋ねください。アプリはアレルギーや食品の安全を判断しません。", done: "注文しました", doneSub: c => `レジでコード ${c} を提示`,
     readyToast: s => `${s}のご注文が受取できます`, addedToast: n => `${n}を追加`,
   },
 };
@@ -83,7 +83,7 @@ function loginView() {
       <button class="cbtn primary" data-act="${V.auth === "up" ? "signup" : "signin"}">${V.auth === "up" ? t("signup") : t("signin")}</button>
     </form>
     <button class="cbtn ghost" data-act="guest">${t("guest")}</button>
-    <p class="fine">Demo login is filled in: just tap Sign in. (demo@gochi.demo · demo1234)</p>
+    <p class="fine">${t("demoHint")}</p>
     <p class="fine">${t("loginNote")}</p></div>`;
 }
 

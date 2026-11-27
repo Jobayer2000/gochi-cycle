@@ -106,7 +106,9 @@ export function trainAll(history, testDays = 14) {
     }
     const meanSold = test.reduce((s, r) => s + r.sold, 0) / test.length;
     const wFull = fitRidge(rows.map(r => features(r.wd, r.weather, r.temp, r.event)), rows.map(r => r.sold - r.pre));
-    models[it.id] = { w: wFull, maeAI: errAI / test.length, maeHabit: errHabit / test.length, meanSold, rows };
+    const res = rows.map(r => predict(wFull, features(r.wd, r.weather, r.temp, r.event)) - (r.sold - r.pre));
+    const sd = Math.sqrt(res.reduce((s, x) => s + x * x, 0) / res.length);
+    models[it.id] = { w: wFull, sd, maeAI: errAI / test.length, maeHabit: errHabit / test.length, meanSold, rows };
   }
   return models;
 }
@@ -130,7 +132,7 @@ export function plan(models, ctx) {
     const f = features(ctx.wd, ctx.weather, ctx.temp, ctx.event);
     const contrib = f.map((x, i) => [FEATURE_NAMES[i], m.w[i] * x]).filter(([, v], i) => i === 0 || Math.abs(v) > 0.05);
     const lastWeek = sameDay ? sameDay.sold - sameDay.pre : m.meanSold;
-    return { ...it, pre, walk, lastWeek, buffer: Math.sqrt(walk) * 0.5, contrib, forecast: fc, habit, aiMake, leftoverHabit, leftoverAI, discount, markdownAt: "21:00" };
+    return { ...it, sd: m.sd, pre, walk, lastWeek, buffer: Math.sqrt(walk) * 0.5, contrib, forecast: fc, habit, aiMake, leftoverHabit, leftoverAI, discount, markdownAt: "21:00" };
   });
 }
 

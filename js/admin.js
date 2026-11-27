@@ -19,7 +19,7 @@ const T = {
     scenTitle: "Growth scenarios (team model, per year)", scenNote: "Basis: 10 offers per store per day × 250 g = 2.5 kg, about 29% of the 8.6 kg of unsold food per store per day that Lawson reports (FY2025): a deliberately partial share. 20% and 30% sell-through are test scenarios, not data. “Result” = our 8% fee − 3% payment cost − ¥12,000 support per store − ¥3m fixed costs; development, marketing and tax are excluded. Scenarios, not forecasts.", liveNote: "Live figures from this demo: our net income here = commission − payment cost only (support and fixed costs are in the scenarios below). Impact counts picked-up orders only.", howCount: "How impact is counted",
     scen: [["Hiroshima, 20% of offers sell", "revenue ¥20.4m", "result −¥4.2m"], ["Hiroshima, 30% of offers sell", "revenue ¥30.5m", "result +¥2.1m"],
       ["Break-even at 30%", "≈ 680 active stores", "covers ¥3m fixed"], ["Japan (53,134 stores), 30%", "revenue ≈ ¥1.40bn", "commission only"]],
-    logout: "Log out", demo: "Demo data in this browser only. No real money moves.",
+    logout: "Log out", demoHint: "Demo login is filled in: just tap Sign in. (hq@gochi.demo · admin1234)", demo: "Demo data in this browser only. No real money moves.",
   },
   jp: {
     hq: "Gochi本部", lead: "私たちの側：プラットフォームの収益、店舗への支払い、成長。", email: "管理者メール", pw: "パスワード", enter: "ログイン", wrong: "メールアドレスまたはパスワードが違います。",
@@ -36,7 +36,7 @@ const T = {
     scenTitle: "成長シナリオ（チームのモデル・年間）", scenNote: "根拠：1店舗1日10品 × 250g = 2.5kg。ローソンが公表する1店舗1日あたりの売れ残り食品8.6kg（2025年度）の約29%で、意図的に一部だけを想定。販売率20%・30%は検証用のシナリオでデータではありません。「収支」＝手数料8% − 決済3% − サポート1店¥12,000 − 固定費¥300万。開発・広告・税は含みません。予測ではなくシナリオです。", liveNote: "このデモの実数：ここでの純収入＝手数料 − 決済コストのみ（サポート費・固定費は下のシナリオに含む）。インパクトは受け取り済みの注文のみ。", howCount: "インパクトの数え方",
     scen: [["広島・オファーの20%が販売", "収入 ¥2,040万", "収支 −¥420万"], ["広島・オファーの30%が販売", "収入 ¥3,050万", "収支 +¥210万"],
       ["30%での損益分岐", "約680店舗", "固定費¥300万をカバー"], ["全国（53,134店）・30%", "収入 約¥14億", "手数料のみ"]],
-    logout: "ログアウト", demo: "デモデータ（このブラウザ内のみ）。実際のお金は動きません。",
+    logout: "ログアウト", demoHint: "デモ用ログインは入力済み：ログインを押すだけ（hq@gochi.demo・admin1234）", demo: "デモデータ（このブラウザ内のみ）。実際のお金は動きません。",
   },
 };
 let ctx, root, pinTry = "";
@@ -50,7 +50,7 @@ function render() {
       <h2>${t("hq")}</h2><p class="muted">${t("lead")}</p>
       <form class="authf" onsubmit="return false"><label class="fld"><span>${t("email")}</span><input id="aEmail" type="email" autocomplete="username" inputmode="email" value="hq@gochi.demo"></label>
       <label class="fld"><span>${t("pw")}</span><input id="aPw" type="password" autocomplete="current-password" value="admin1234"></label>
-      <button class="cbtn primary" data-aenter>${t("enter")}</button></form><p class="fine">Demo login is filled in: just tap Sign in. (hq@gochi.demo · admin1234)</p></div></div></div>`;
+      <button class="cbtn primary" data-aenter>${t("enter")}</button></form><p class="fine">${t("demoHint")}</p></div></div></div>`;
     return;
   }
   const p = platformStats();
